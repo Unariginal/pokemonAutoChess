@@ -101,44 +101,49 @@ export default function WikiMegaMadness() {
         <h2>{t("wiki.mega_madness.mega_evolutions")}</h2>
         <p>{t("wiki.mega_madness.mega_evolutions_hint")}</p>
         <ul className="megas">
-          {MegaEvolutions.map((mega) => {
-            const recipe = mega.stone ? MegaItemRecipe[mega.stone] : undefined
-            return (
-              <li key={mega.mega} className="mega my-box">
-                <header>
-                  <span className="portraits">
-                    <Portrait pkm={mega.bases[0]} />
-                    <span className="arrow">➜</span>
-                    <Portrait pkm={mega.mega} />
-                  </span>
-                  <span className="name">
-                    {t(`pkm.${mega.mega}`)}
-                    <span className="types">
-                      {[...getPokemonData(mega.mega).types].map((type) => (
-                        <SynergyIcon key={type} type={type} size="24px" />
-                      ))}
-                    </span>
-                  </span>
-                </header>
-                {mega.stone && recipe ? (
-                  <div className="recipe">
-                    <ItemIcon item={recipe[0]} />+<ItemIcon item={recipe[1]} />=
-                    <ItemIcon item={mega.stone} />
-                    <span>{t(`item.${mega.stone}`)}</span>
-                  </div>
-                ) : (
-                  <p className="recipe">{t("wiki.mega_madness.no_stone")}</p>
-                )}
-                {mega.bases.length > 1 && (
-                  <p className="forms">
-                    {t("wiki.mega_madness.all_forms", {
-                      forms: mega.bases.map((b) => t(`pkm.${b}`)).join(", ")
-                    })}
-                  </p>
-                )}
-              </li>
+          {[...MegaEvolutions]
+            .sort((a, b) =>
+              t(`pkm.${a.mega}`).localeCompare(t(`pkm.${b.mega}`))
             )
-          })}
+            .map((mega) => {
+              const recipe = mega.stone ? MegaItemRecipe[mega.stone] : undefined
+              return (
+                <li key={mega.mega} className="mega my-box">
+                  <header>
+                    <span className="portraits">
+                      <Portrait pkm={mega.bases[0]} />
+                      <span className="arrow">➜</span>
+                      <Portrait pkm={mega.mega} />
+                    </span>
+                    <span className="name">
+                      {t(`pkm.${mega.mega}`)}
+                      <span className="types">
+                        {[...getPokemonData(mega.mega).types].map((type) => (
+                          <SynergyIcon key={type} type={type} size="24px" />
+                        ))}
+                      </span>
+                    </span>
+                  </header>
+                  {mega.stone && recipe ? (
+                    <div className="recipe">
+                      <ItemIcon item={recipe[0]} />+
+                      <ItemIcon item={recipe[1]} />=
+                      <ItemIcon item={mega.stone} />
+                      <span>{t(`item.${mega.stone}`)}</span>
+                    </div>
+                  ) : (
+                    <p className="recipe">{t("wiki.mega_madness.no_stone")}</p>
+                  )}
+                  {mega.bases.length > 1 && (
+                    <p className="forms">
+                      {t("wiki.mega_madness.all_forms", {
+                        forms: mega.bases.map((b) => t(`pkm.${b}`)).join(", ")
+                      })}
+                    </p>
+                  )}
+                </li>
+              )
+            })}
         </ul>
       </article>
 

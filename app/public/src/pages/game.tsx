@@ -50,7 +50,13 @@ import {
   useAppDispatch,
   useAppSelector
 } from "../hooks"
-import { authenticateUser, client, joinGame, rooms } from "../network"
+import {
+  authenticateUser,
+  client,
+  joinGame,
+  leaveRoomSafely,
+  rooms
+} from "../network"
 import { usePreference } from "../preferences"
 import store from "../stores"
 import {
@@ -359,9 +365,7 @@ export default function Game() {
       { reconnectionToken: r.reconnectionToken, roomId: r.roomId },
       30
     )
-    if (r.connection.isOpen) {
-      await r.leave(false)
-    }
+    await leaveRoomSafely(r, false)
     dispatch(leaveGame())
     navigate("/after")
     if (room?.connection.isOpen) {

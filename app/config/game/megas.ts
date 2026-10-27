@@ -1094,6 +1094,12 @@ export function getMegaEvolution(pokemon: Pkm, stone: Item) {
 }
 
 // Mega Madness: Lucario's town, whose carousel is mostly Key Stones, can occur at these stages
+// megas get the max tier of their ability values, but keep the sell price of their template
+export const MEGA_STARS = 4
+export const MegaTemplateByPkm = Object.fromEntries(
+  MegaEvolutions.map((m) => [m.mega, m.template])
+) as { [key in Pkm]?: Pkm }
+
 // stat boosts of mega evolutions over their template form (Mega Sableye and Mega Rayquaza have their own stats)
 export const MegaStatBoosts = {
   hpPercent: 50,

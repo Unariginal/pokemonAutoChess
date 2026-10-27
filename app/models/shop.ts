@@ -40,7 +40,8 @@ import {
   UNOWN_PSY7_NB_SHOPS_INTERVAL,
   UniquePool
 } from "../config"
-import { getAltFormForPlayer } from "../core/alt-form-logic";
+import { MegaPkms, MegaTemplateByPkm } from "../config/game/megas"
+import { getAltFormForPlayer } from "../core/alt-form-logic"
 import { pickFirstPartners } from "../core/scribbles"
 import type GameState from "../rooms/states/game-state"
 import type { IPokemon, IPokemonEntity } from "../types"
@@ -62,7 +63,7 @@ import {
 } from "../types/enum/Pokemon"
 import { SpecialGameRule } from "../types/enum/SpecialGameRule"
 import { Synergy } from "../types/enum/Synergy"
-import { removeInArray } from "../utils/array"
+import { isIn, removeInArray } from "../utils/array"
 import { logger } from "../utils/logger"
 import { clamp, min } from "../utils/number"
 import {
@@ -100,6 +101,23 @@ export function getSellPrice(
 
   if (specialGameRule === SpecialGameRule.FREE_MARKET && name !== Pkm.EGG)
     return 0
+
+  const megaTemplate = MegaTemplateByPkm[name]
+  if (megaTemplate && isIn(MegaPkms, name)) {
+    // megas have more stars for their ability, but sell like their template
+    const templateData = getPokemonData(megaTemplate)
+    return getSellPrice(
+      {
+        name: megaTemplate,
+        stars: templateData.stars,
+        rarity: templateData.rarity,
+        shiny: pokemon.shiny,
+        items: pokemon.items
+      } as IPokemon,
+      specialGameRule,
+      ignoreRareCandy
+    )
+  }
 
   const duo = Object.entries(PkmDuos).find(([key, duo]) => duo.includes(name))
 
@@ -251,7 +269,7 @@ export default class Shop {
     if (state.additionalPokemons.includes(pkm)) return // already added, like in Everyone is here scribble
     state.additionalPokemons.push(pkm)
     let { rarity, stages } = getPokemonData(pkm)
-    if(pkm === Pkm.CHERUBI) stages = 2; // special case for Cherubi that has 3 stages but should have the pool size of a 2 stage
+    if (pkm === Pkm.CHERUBI) stages = 2 // special case for Cherubi that has 3 stages but should have the pool size of a 2 stage
     const pool = this.getPool(rarity)
     const entityNumber = getPoolSize(rarity, stages)
     if (pool) {

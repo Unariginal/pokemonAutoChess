@@ -2,18 +2,22 @@ import assert from "node:assert/strict"
 import test from "node:test"
 import {
   MEGA_MADNESS_SILK_SCARVES_PER_CAROUSEL,
+  MEGA_STARS,
   MegaCraftingItems,
   MegaEvolutions,
   MegaItemRecipe,
   MegaMadnessKeyStoneTownStages,
   MegaMadnessSilkScarfCarouselStages,
+  MegaPkms,
   MegaStatBoosts,
-  MegaStones
+  MegaStones,
+  MegaTemplateByPkm
 } from "../../config/game/megas"
 import Player from "../../models/colyseus-models/player"
 import { PokemonClasses } from "../../models/colyseus-models/pokemon"
 import PokemonFactory from "../../models/pokemon-factory"
 import { getPokemonData } from "../../models/precomputed/precomputed-pokemon-data"
+import { getSellPrice } from "../../models/shop"
 import type GameRoom from "../../rooms/game-room"
 import GameState from "../../rooms/states/game-state"
 import { Role } from "../../types"
@@ -206,6 +210,17 @@ test("megas get the mega stat boosts over their template", () => {
   assert.equal(mega.speDef, template.speDef + MegaStatBoosts.speDef)
   assert.equal(mega.speed, template.speed + MegaStatBoosts.speed)
   assert.equal(mega.ap, template.ap + MegaStatBoosts.ap)
+})
+
+test("megas use their max ability tier but sell like their template", () => {
+  for (const pkm of MegaPkms) {
+    const mega = PokemonFactory.createPokemonFromName(pkm)
+    assert.equal(mega.stars, MEGA_STARS, pkm)
+    const template = PokemonFactory.createPokemonFromName(
+      MegaTemplateByPkm[pkm]!
+    )
+    assert.equal(getSellPrice(mega), getSellPrice(template), pkm)
+  }
 })
 
 test("pokemons with several forms can all mega evolve", () => {

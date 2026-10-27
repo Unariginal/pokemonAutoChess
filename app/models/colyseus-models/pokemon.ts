@@ -13,6 +13,7 @@ import {
 } from "../../config"
 import { InimitableAbilities } from "../../config/game/abilities"
 import {
+  MEGA_STARS,
   MegaEvolutions,
   type MegaPkm,
   MegaPkms,
@@ -20995,6 +20996,7 @@ function createMegaClasses(
           }
           this.additional = false
           this.regional = false
+          this.stars = MEGA_STARS // max tier of ability values
           this.hp = Math.round(this.hp * (1 + MegaStatBoosts.hpPercent / 100))
           this.atk = Math.round(
             this.atk * (1 + MegaStatBoosts.atkPercent / 100)

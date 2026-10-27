@@ -111,6 +111,24 @@ export const rooms: {
   after: undefined
 }
 
+const LEAVE_ROOM_TIMEOUT_IN_MS = 3000
+
+// Leaving on purpose must not turn into an automatic reconnection: when a proxy drops the
+// close code, the SDK sees an abnormal closure and retries for a minute before leave() resolves
+export async function leaveRoomSafely(
+  room: Room<any, any>,
+  consented = true
+): Promise<number> {
+  room.reconnection.enabled = false
+  if (!room.connection.isOpen) return -1
+  return await Promise.race([
+    room.leave(consented),
+    new Promise<number>((resolve) =>
+      setTimeout(() => resolve(-1), LEAVE_ROOM_TIMEOUT_IN_MS)
+    )
+  ])
+}
+
 export async function leaveRoom(
   roomName: keyof typeof rooms,
   allowReconnect = false
@@ -118,9 +136,7 @@ export async function leaveRoom(
   const room = rooms[roomName]
   if (room) {
     rooms[roomName] = undefined
-    if (room.connection.isOpen) {
-      return await room.leave(!allowReconnect)
-    }
+    return await leaveRoomSafely(room, !allowReconnect)
   }
   return Promise.resolve(-1)
 }
