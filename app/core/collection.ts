@@ -1,3 +1,4 @@
+import { getEmotionCost } from "../config/game/collection"
 import { CollectionEmotions, Emotion, type PkmWithCustom } from "../types"
 import { PkmIndex } from "../types/enum/Pokemon"
 import type {
@@ -179,6 +180,32 @@ export class CollectionUtils {
       emotions,
       shinyEmotions
     }
+  }
+
+  /**
+   * Get the rarest unlocked emotion, shiny first, rarity being the unlock cost.
+   * Keeps the current selection when it is tied with the rarest one.
+   */
+  static getRarestEmotion(
+    item: IPokemonCollectionItemMongo | IPokemonCollectionItemClient
+  ): { emotion: Emotion; shiny: boolean } | null {
+    const { emotions, shinyEmotions } =
+      CollectionUtils.getEmotionsUnlocked(item)
+    const shiny = shinyEmotions.length > 0
+    const candidates = shiny ? shinyEmotions : emotions
+    if (candidates.length === 0) return null
+
+    const maxCost = Math.max(...candidates.map((e) => getEmotionCost(e, shiny)))
+    const rarest = candidates.filter(
+      (e) => getEmotionCost(e, shiny) === maxCost
+    )
+    const emotion =
+      item.selectedShiny === shiny &&
+      item.selectedEmotion != null &&
+      rarest.includes(item.selectedEmotion)
+        ? item.selectedEmotion
+        : rarest[0]
+    return { emotion, shiny }
   }
 
   /**

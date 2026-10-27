@@ -1,10 +1,5 @@
 import { BotDifficulty } from "../../types/enum/Game"
 
-// empty lobby slots are filled with bots when a game starts.
-// In lobbies without an owner, the game auto-starts this many seconds after the last player joined
-export const AUTO_FILL_BOTS = true
-export const AUTO_FILL_BOTS_DELAY_IN_SECONDS = 60
-
 export const BotDifficultiesEloCaps = [850, 1000, 1150, 1300, 1450]
 export const BotDifficulties = [
   BotDifficulty.BEGINNER,

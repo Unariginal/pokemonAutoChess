@@ -61,7 +61,9 @@ export default function PreparationMenu() {
   const isModerator = user?.role === Role.MODERATOR
 
   const gameMode = useAppSelector((state) => state.preparation.gameMode)
-  const hasBotsEnabled = gameMode === GameMode.CUSTOM_LOBBY || isAdmin
+  const hasBotsEnabled = gameMode !== GameMode.TOURNAMENT || isAdmin
+  // lobbies without an owner let every player manage bots
+  const canManageBots = isOwner || isAdmin || !ownerId
   const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>(
     BotDifficulty.MEDIUM
   )
@@ -276,7 +278,7 @@ export default function PreparationMenu() {
       </div>
     )
 
-  const botControls = hasBotsEnabled && (isOwner || isAdmin) && (
+  const botControls = hasBotsEnabled && canManageBots && (
     <div className="my-input-group">
       <button
         className="bubbly blue"
@@ -450,7 +452,7 @@ export default function PreparationMenu() {
         </div>
       </div>
 
-      {isOwner && showBotSelectModal && (
+      {canManageBots && showBotSelectModal && (
         <BotSelectModal
           botsSelected={users.filter((u) => u.isBot).map((u) => u.uid)}
           close={() => setShowBotSelectModal(false)}

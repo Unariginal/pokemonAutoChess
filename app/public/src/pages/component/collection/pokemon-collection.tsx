@@ -33,6 +33,7 @@ import { Synergy } from "../../../../../types/enum/Synergy"
 import type { IPokemonCollectionItemUnpacked } from "../../../../../types/interfaces/UserMetadata"
 import { PokemonAnimations } from "../../../game/components/pokemon-animations"
 import { useAppSelector } from "../../../hooks"
+import { equipRarestEmotions } from "../../../network"
 import { LocalStoreKeys, localStore, useLocalStore } from "../../utils/store"
 import SynergyIcon from "../icons/synergy-icon"
 import { PokemonTypeahead } from "../typeahead/pokemon-typeahead"
@@ -87,6 +88,19 @@ export default function PokemonCollection() {
 
   const [filterState, setFilterState] =
     useState<CollectionFilterState>(prevFilterState)
+
+  const [equipping, setEquipping] = useState(false)
+  async function equipRarest() {
+    if (!confirm(t("collection.equip_rarest_emotions_confirm"))) return
+    setEquipping(true)
+    try {
+      await equipRarestEmotions()
+    } catch (error) {
+      alert(error instanceof Error ? error.message : t("errors.UNKNOWN_ERROR"))
+    } finally {
+      setEquipping(false)
+    }
+  }
 
   const [count, setCount] = useState<number>(0)
   const [total, setTotal] = useState<number>(0)
@@ -247,6 +261,15 @@ export default function PokemonCollection() {
           value={selectedPokemon}
           onChange={setSelectedPokemon}
         />
+
+        <button
+          className="bubbly blue"
+          disabled={equipping}
+          title={t("collection.equip_rarest_emotions_hint")}
+          onClick={equipRarest}
+        >
+          {t("collection.equip_rarest_emotions")}
+        </button>
       </header>
       <div style={{ maxWidth: "100%" }}>
         <Tabs>

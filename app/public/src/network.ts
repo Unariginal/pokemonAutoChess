@@ -308,6 +308,27 @@ export async function changeSelectedEmotion(params: {
   return payload
 }
 
+export async function equipRarestEmotions() {
+  const token = await firebase.auth().currentUser?.getIdToken()
+  if (!token) throw new Error("User not authenticated")
+
+  const res = await fetch("/collection/equip-rarest-emotions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? res.statusText)
+  }
+
+  const payload = (await res.json()) as { user: IUserMetadataJSON }
+  store.dispatch(setProfile(payload.user))
+  return payload
+}
+
 export async function buyBooster(params: { index: string }) {
   const token = await firebase.auth().currentUser?.getIdToken()
   if (!token) throw new Error("User not authenticated")

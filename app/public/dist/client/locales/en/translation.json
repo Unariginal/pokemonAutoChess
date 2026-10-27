@@ -4293,7 +4293,10 @@
 		"choose_as_avatar": "Choose as player avatar",
 		"chosen_as_avatar": "✓ Chosen as player avatar",
 		"add_to_favorites": "Add to favorites",
-		"remove_from_favorites": "Remove from favorites"
+		"remove_from_favorites": "Remove from favorites",
+		"equip_rarest_emotions": "Equip rarest emotions",
+		"equip_rarest_emotions_hint": "For every Pokémon, equip the rarest emotion you unlocked, shiny first",
+		"equip_rarest_emotions_confirm": "For every Pokémon, equip the rarest emotion you unlocked, shiny first? This replaces your current choices."
 	},
 	"meta": "Meta",
 	"back_to_lobby": "Back to Lobby",
@@ -5396,7 +5399,8 @@
 			"rule_crafting": "Combine a KEY_STONE with a component to craft a Mega Shard, then combine that Mega Shard with a component to craft a specific Mega Stone. Every recipe is fixed, there is no randomness. Items can be combined in your inventory or on a Pokémon.",
 			"rule_mega_evolve": "Give a Mega Stone to its matching Pokémon to Mega Evolve it. The Pokémon needs a free item slot.",
 			"rule_held": "The Mega Pokémon keeps holding its Mega Stone, just like Primal Groudon holds the RED_ORB.",
-			"rule_stats": "Mega Pokémon keep the ability of their base form, with +25% HP and ATK, +3 DEF and SPE_DEF, and +5 SPEED. They can't be found in shops.",
+			"rule_stats": "Mega Pokémon keep the ability of their base form, with +{{hpPercent}}% HP, +{{atkPercent}}% ATK, +{{def}} DEF, +{{speDef}} SPE_DEF, +{{speed}} SPEED and +{{ap}} AP. They can't be found in shops.",
+			"rule_silk_scarf": "Many Mega Stones need a SILK_SCARF: winning the stage {{silkScarfPveStage}} PvE fight always rewards one, and the carousels of stages {{silkScarfStages}} have a {{silkScarfChance}}% chance to offer {{silkScarves}} extra SILK_SCARF.",
 			"shards": "Mega Shards",
 			"mega_evolutions": "Mega Evolutions",
 			"mega_evolutions_hint": "Hover a Pokémon or an item to see its details.",

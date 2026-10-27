@@ -75,6 +75,30 @@ export async function changeSelectedEmotionForUser(
   return { userDoc: mongoUser }
 }
 
+export async function equipRarestEmotionsForUser(
+  uid: string
+): Promise<CollectionMutationResult | null> {
+  const mongoUser = await UserMetadata.findOne({ uid })
+  if (!mongoUser) return null
+
+  let changed = false
+  mongoUser.pokemonCollection.forEach((mongoItem) => {
+    const rarest = CollectionUtils.getRarestEmotion(mongoItem)
+    if (
+      rarest &&
+      (rarest.emotion !== mongoItem.selectedEmotion ||
+        rarest.shiny !== mongoItem.selectedShiny)
+    ) {
+      mongoItem.selectedEmotion = rarest.emotion
+      mongoItem.selectedShiny = rarest.shiny
+      changed = true
+    }
+  })
+
+  if (changed) await mongoUser.save()
+  return { userDoc: mongoUser }
+}
+
 export async function buyEmotionForUser(
   uid: string,
   index: string,

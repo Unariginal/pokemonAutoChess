@@ -1094,6 +1094,22 @@ export function getMegaEvolution(pokemon: Pkm, stone: Item) {
 }
 
 // Mega Madness: Lucario's town, whose carousel is mostly Key Stones, can occur at these stages
+// stat boosts of mega evolutions over their template form (Mega Sableye and Mega Rayquaza have their own stats)
+export const MegaStatBoosts = {
+  hpPercent: 50,
+  atkPercent: 50,
+  def: 5,
+  speDef: 5,
+  speed: 10,
+  ap: 25
+}
+
+// many Mega Stones need a Silk Scarf: some carousels may offer extra ones, and a PvE fight always rewards one
+export const MegaMadnessSilkScarfCarouselStages = [12, 17]
+export const MEGA_MADNESS_SILK_SCARF_CAROUSEL_CHANCE = 1 / 2
+export const MEGA_MADNESS_SILK_SCARVES_PER_CAROUSEL = 2
+export const MEGA_MADNESS_SILK_SCARF_PVE_STAGE = 9
+
 export const MegaMadnessKeyStoneTownStages = [12, 17, 22]
 export const MEGA_MADNESS_KEY_STONE_TOWN_CHANCE = 1 / 5
 

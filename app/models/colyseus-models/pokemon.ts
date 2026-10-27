@@ -12,7 +12,12 @@ import {
   RegionDetails
 } from "../../config"
 import { InimitableAbilities } from "../../config/game/abilities"
-import { MegaEvolutions, type MegaPkm, MegaPkms } from "../../config/game/megas"
+import {
+  MegaEvolutions,
+  type MegaPkm,
+  MegaPkms,
+  MegaStatBoosts
+} from "../../config/game/megas"
 import { SynergyTiers } from "../../config/game/synergies"
 import { getAltFormForPlayer } from "../../core/alt-form-logic"
 import type Simulation from "../../core/simulation"
@@ -20990,11 +20995,14 @@ function createMegaClasses(
           }
           this.additional = false
           this.regional = false
-          this.hp = Math.round(this.hp * 1.25)
-          this.atk = Math.round(this.atk * 1.25)
-          this.def += 3
-          this.speDef += 3
-          this.speed += 5
+          this.hp = Math.round(this.hp * (1 + MegaStatBoosts.hpPercent / 100))
+          this.atk = Math.round(
+            this.atk * (1 + MegaStatBoosts.atkPercent / 100)
+          )
+          this.def += MegaStatBoosts.def
+          this.speDef += MegaStatBoosts.speDef
+          this.speed += MegaStatBoosts.speed
+          this.ap += MegaStatBoosts.ap
           megaEvolution.addTypes.forEach((type) => this.types.add(type))
         }
       }

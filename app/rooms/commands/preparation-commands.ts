@@ -9,11 +9,7 @@ import {
   MAX_PLAYERS_PER_GAME,
   MIN_HUMAN_PLAYERS
 } from "../../config"
-import {
-  AUTO_FILL_BOTS,
-  AUTO_FILL_BOTS_DELAY_IN_SECONDS,
-  getEloRangeByBotDifficulty
-} from "../../config/game/bots"
+import { getEloRangeByBotDifficulty } from "../../config/game/bots"
 import { GADGETS } from "../../config/game/gadgets"
 import {
   getPendingGame,
@@ -65,89 +61,6 @@ function autoAssignPartner(state: PreparationRoom["state"], uid: string) {
   newUser.doubleUpTeamId = teamId
   unpaired.doubleUpPartnerId = uid
   unpaired.doubleUpTeamId = teamId
-}
-
-async function fillEmptySlotsWithBots(room: PreparationRoom) {
-  const state = room.state
-  const nbMissing = MAX_PLAYERS_PER_GAME - state.users.size
-  if (nbMissing <= 0) return
-
-  const users = schemaValues(state.users)
-  const humans = users.filter((u) => !u.isBot)
-  const averageElo =
-    humans.length > 0
-      ? humans.reduce((sum, u) => sum + u.elo, 0) / humans.length
-      : 1000
-  const existingBots = users.filter((u) => u.isBot).map((u) => u.uid)
-
-  // prefer bots close to the players' level, then widen the search if not enough are found
-  let candidates: Pick<IBot, "avatar" | "elo" | "name" | "id">[] = []
-  for (const range of [150, 400, Infinity]) {
-    const elo =
-      range === Infinity
-        ? undefined
-        : { $gte: averageElo - range, $lte: averageElo + range }
-    candidates = await BotV2.find(
-      { id: { $nin: existingBots }, approved: true, ...(elo ? { elo } : {}) },
-      "avatar elo name id"
-    ).lean<Pick<IBot, "avatar" | "elo" | "name" | "id">[]>()
-    if (candidates.length >= nbMissing) break
-  }
-
-  const bots = shuffleArray(candidates)
-  // check again the lobby size because of the async request ahead
-  while (state.users.size < MAX_PLAYERS_PER_GAME && bots.length > 0) {
-    const bot = bots.pop()!
-    state.users.set(
-      bot.id,
-      new GameUser(
-        bot.id,
-        bot.name,
-        bot.elo,
-        99, // arbitrary number of games played
-        bot.avatar,
-        true,
-        true,
-        "",
-        Role.BOT,
-        false
-      )
-    )
-    if (isDoubleUpMode(state.gameMode)) {
-      autoAssignPartner(state, bot.id)
-    }
-  }
-  if (bots.length === candidates.length) return // no bot added
-  room.updatePlayersInfo()
-  state.addMessage({
-    authorId: "server",
-    payload: `Empty slots have been filled with bots.`
-  })
-}
-
-// lobbies without an owner can't be started manually, so start them with bots after a delay
-function scheduleBotFill(room: PreparationRoom) {
-  const state = room.state
-  if (
-    !AUTO_FILL_BOTS ||
-    state.gameMode === GameMode.CUSTOM_LOBBY ||
-    state.gameMode === GameMode.TOURNAMENT ||
-    state.gameStartedAt != null ||
-    state.users.size >= MAX_PLAYERS_PER_GAME
-  )
-    return
-
-  state.botFillCountdown?.clear()
-  state.addMessage({
-    authorId: "server",
-    payload: `If the lobby isn't full in ${AUTO_FILL_BOTS_DELAY_IN_SECONDS} seconds, empty slots will be filled with bots and the game will start.`
-  })
-  state.botFillCountdown = room.clock.setTimeout(() => {
-    state.botFillCountdown = null
-    const hasHumans = schemaValues(state.users).some((u) => !u.isBot)
-    if (!hasHumans || state.gameStartedAt != null) return
-    room.dispatcher.dispatch(new OnGameStartRequestCommand())
-  }, AUTO_FILL_BOTS_DELAY_IN_SECONDS * 1000)
 }
 
 export class OnJoinCommand extends Command<
@@ -298,7 +211,6 @@ export class OnJoinCommand extends Command<
           payload: `${u.displayName} joined.`,
           avatar: u.avatar
         })
-        scheduleBotFill(this.room)
       }
 
       while (this.state.users.size > MAX_PLAYERS_PER_GAME) {
@@ -400,11 +312,6 @@ export class OnGameStartRequestCommand extends Command<
           avatar: "0079/Sigh"
         })
         return
-      }
-
-      if (AUTO_FILL_BOTS && this.state.gameMode !== GameMode.TOURNAMENT) {
-        await fillEmptySlotsWithBots(this.room)
-        if (this.state.gameStartedAt != null) return // started during the bot lookup
       }
 
       if (this.state.users.size < 2) {
@@ -862,29 +769,34 @@ export class OnToggleReadyCommand extends Command<
         user.ready = ready
       }
 
-      const nbExpectedPlayers =
-        this.room.metadata?.whitelist &&
-        this.room.metadata?.whitelist.length > 0
-          ? max(MAX_PLAYERS_PER_GAME)(this.room.metadata?.whitelist.length)
-          : MAX_PLAYERS_PER_GAME
-
-      if (
-        this.state.gameMode !== GameMode.CUSTOM_LOBBY &&
-        this.state.users.size === nbExpectedPlayers &&
-        schemaValues(this.state.users).every((user) => user.ready)
-      ) {
-        // auto start when ranked lobby is full and all ready
-        this.room.state.addMessage({
-          authorId: "server",
-          payload: "Lobby is full, starting match in 5 seconds..."
-        })
-
+      if (shouldAutoStart(this.room)) {
         return new CheckAutoStartRoom()
       }
     } catch (error) {
       logger.error(error)
     }
   }
+}
+
+// auto start when a lobby without manual start is full and all ready
+function shouldAutoStart(room: PreparationRoom): boolean {
+  const nbExpectedPlayers =
+    room.metadata?.whitelist && room.metadata?.whitelist.length > 0
+      ? max(MAX_PLAYERS_PER_GAME)(room.metadata?.whitelist.length)
+      : MAX_PLAYERS_PER_GAME
+
+  if (
+    room.state.gameMode !== GameMode.CUSTOM_LOBBY &&
+    room.state.users.size === nbExpectedPlayers &&
+    schemaValues(room.state.users).every((user) => user.ready)
+  ) {
+    room.state.addMessage({
+      authorId: "server",
+      payload: "Lobby is full, starting match in 5 seconds..."
+    })
+    return true
+  }
+  return false
 }
 
 export class CheckAutoStartRoom extends Command<PreparationRoom, void> {
@@ -979,6 +891,7 @@ type OnAddBotPayload = {
 export class OnAddBotCommand extends Command<PreparationRoom, OnAddBotPayload> {
   async execute(data: OnAddBotPayload) {
     try {
+      if (this.state.gameMode === GameMode.TOURNAMENT) return
       if (this.state.users.size >= MAX_PLAYERS_PER_GAME) {
         this.room.state.addMessage({
           authorId: "server",
@@ -1051,6 +964,10 @@ export class OnAddBotCommand extends Command<PreparationRoom, OnAddBotPayload> {
           authorId: "server",
           payload: `Bot ${bot.name} added.`
         })
+
+        if (shouldAutoStart(this.room)) {
+          return new CheckAutoStartRoom()
+        }
       }
     } catch (error) {
       logger.error(error)
@@ -1077,6 +994,7 @@ export class OnRemoveBotCommand extends Command<
         }
       }
       if (name && this.state.users.delete(target)) {
+        this.state.abortOnPlayerLeave?.abort() // the lobby is no longer full
         this.room.state.addMessage({
           authorId: "server",
           payload: `Bot ${name} removed.`

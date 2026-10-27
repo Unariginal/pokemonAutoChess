@@ -17,7 +17,10 @@ import {
 } from "../config"
 import {
   MEGA_MADNESS_KEY_STONE_TOWN_CHANCE,
-  MegaMadnessKeyStoneTownStages
+  MEGA_MADNESS_SILK_SCARF_CAROUSEL_CHANCE,
+  MEGA_MADNESS_SILK_SCARVES_PER_CAROUSEL,
+  MegaMadnessKeyStoneTownStages,
+  MegaMadnessSilkScarfCarouselStages
 } from "../config/game/megas"
 import { FloatingItem } from "../models/colyseus-models/floating-item"
 import type Player from "../models/colyseus-models/player"
@@ -605,6 +608,16 @@ export class MiniGame {
       const nbKeyStones = Math.max(this.alivePlayers.length, 4)
       for (let i = 0; i < nbKeyStones; i++) items.push(Item.KEY_STONE)
       nbItemsToPick = 3
+    }
+
+    if (
+      state.gameMode === GameMode.MEGA_MADNESS &&
+      MegaMadnessSilkScarfCarouselStages.includes(stageLevel) &&
+      chance(MEGA_MADNESS_SILK_SCARF_CAROUSEL_CHANCE)
+    ) {
+      // many Mega Stones need a Silk Scarf
+      for (let i = 0; i < MEGA_MADNESS_SILK_SCARVES_PER_CAROUSEL; i++)
+        items.push(Item.SILK_SCARF)
     }
 
     if (encounter === TownEncounters.LUDICOLO) {

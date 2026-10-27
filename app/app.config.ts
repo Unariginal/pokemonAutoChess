@@ -47,6 +47,7 @@ import {
 import {
   buyEmotionForUser,
   changeSelectedEmotionForUser,
+  equipRarestEmotionsForUser,
   migrateShardsOfAltForms
 } from "./services/collection"
 import { getLeaderboard } from "./services/leaderboard"
@@ -825,6 +826,24 @@ export const server = defineServer({
       } catch (error) {
         logger.error("Error changing selected emotion", error)
         res.status(500).json({ error: "Error changing selected emotion" })
+      }
+    })
+
+    app.post("/collection/equip-rarest-emotions", async (req, res) => {
+      try {
+        const userAuth = await authUser(req, res)
+        if (!userAuth) return
+
+        const result = await equipRarestEmotionsForUser(userAuth.uid)
+        if (!result) {
+          res.status(404).json({ error: "User not found" })
+          return
+        }
+
+        res.status(200).json({ user: toUserMetadataJSON(result.userDoc) })
+      } catch (error) {
+        logger.error("Error equipping rarest emotions", error)
+        res.status(500).json({ error: "Error equipping rarest emotions" })
       }
     })
 

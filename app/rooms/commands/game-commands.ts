@@ -26,6 +26,7 @@ import {
 } from "../../config"
 import {
   MEGA_MADNESS_KEY_STONE_PVE_STAGE,
+  MEGA_MADNESS_SILK_SCARF_PVE_STAGE,
   MegaCraftingItems,
   MegaItemRecipe,
   MegaStones
@@ -1983,6 +1984,9 @@ export class OnUpdatePhaseCommand extends Command<GameRoom> {
             while (player.pveRewards.length > 0) {
               const reward = player.pveRewards.pop()!
               player.items.push(reward)
+              if (reward === Item.SILK_SCARF) {
+                player.extraScarves += 1
+              }
             }
 
             if (player.pveRewardsPropositions.length > 0) {
@@ -2157,11 +2161,13 @@ export class OnUpdatePhaseCommand extends Command<GameRoom> {
           const rewards =
             pveStage.getRewards?.(player, this.state.shinyEncounter) ??
             ([] as Item[])
-          if (
-            this.state.gameMode === GameMode.MEGA_MADNESS &&
-            this.state.stageLevel === MEGA_MADNESS_KEY_STONE_PVE_STAGE
-          ) {
-            rewards.push(Item.KEY_STONE)
+          if (this.state.gameMode === GameMode.MEGA_MADNESS) {
+            if (this.state.stageLevel === MEGA_MADNESS_KEY_STONE_PVE_STAGE) {
+              rewards.push(Item.KEY_STONE)
+            }
+            if (this.state.stageLevel === MEGA_MADNESS_SILK_SCARF_PVE_STAGE) {
+              rewards.push(Item.SILK_SCARF)
+            }
           }
           resetArraySchema(player.pveRewards, rewards)
 

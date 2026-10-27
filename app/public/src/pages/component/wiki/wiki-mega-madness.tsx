@@ -2,10 +2,15 @@ import { useTranslation } from "react-i18next"
 import {
   MEGA_MADNESS_KEY_STONE_PVE_STAGE,
   MEGA_MADNESS_KEY_STONE_TOWN_CHANCE,
+  MEGA_MADNESS_SILK_SCARF_CAROUSEL_CHANCE,
+  MEGA_MADNESS_SILK_SCARF_PVE_STAGE,
+  MEGA_MADNESS_SILK_SCARVES_PER_CAROUSEL,
   MegaEvolutions,
   MegaItemRecipe,
   MegaMadnessKeyStoneTownStages,
-  MegaShards
+  MegaMadnessSilkScarfCarouselStages,
+  MegaShards,
+  MegaStatBoosts
 } from "../../../../../config/game/megas"
 import { getPokemonData } from "../../../../../models/precomputed/precomputed-pokemon-data"
 import { Emotion } from "../../../../../types"
@@ -45,7 +50,12 @@ export default function WikiMegaMadness() {
   const params = {
     townStages: MegaMadnessKeyStoneTownStages.join(", "),
     townChance: Math.round(MEGA_MADNESS_KEY_STONE_TOWN_CHANCE * 100),
-    pveStage: MEGA_MADNESS_KEY_STONE_PVE_STAGE
+    pveStage: MEGA_MADNESS_KEY_STONE_PVE_STAGE,
+    silkScarves: MEGA_MADNESS_SILK_SCARVES_PER_CAROUSEL,
+    silkScarfStages: MegaMadnessSilkScarfCarouselStages.join(", "),
+    silkScarfChance: Math.round(MEGA_MADNESS_SILK_SCARF_CAROUSEL_CHANCE * 100),
+    silkScarfPveStage: MEGA_MADNESS_SILK_SCARF_PVE_STAGE,
+    ...MegaStatBoosts
   }
 
   return (
@@ -60,7 +70,8 @@ export default function WikiMegaMadness() {
               "rule_crafting",
               "rule_mega_evolve",
               "rule_held",
-              "rule_stats"
+              "rule_stats",
+              "rule_silk_scarf"
             ] as const
           ).map((rule) => (
             <li key={rule}>

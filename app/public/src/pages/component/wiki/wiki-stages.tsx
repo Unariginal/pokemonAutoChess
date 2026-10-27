@@ -10,6 +10,7 @@ import {
 import {
   MEGA_MADNESS_KEY_STONE_PVE_STAGE,
   MEGA_MADNESS_KEY_STONE_TOWN_CHANCE,
+  MEGA_MADNESS_SILK_SCARF_PVE_STAGE,
   MegaMadnessKeyStoneTownStages
 } from "../../../../../config/game/megas"
 import { getAdditionalsTier1 } from "../../../../../models/precomputed/precomputed-pokemon-data"
@@ -271,6 +272,9 @@ function StageDetail({
     ...(stageInfo.stageData?.rewards ?? []),
     ...(isMegaMadness && stageInfo.level === MEGA_MADNESS_KEY_STONE_PVE_STAGE
       ? [ItemEnum.KEY_STONE]
+      : []),
+    ...(isMegaMadness && stageInfo.level === MEGA_MADNESS_SILK_SCARF_PVE_STAGE
+      ? [ItemEnum.SILK_SCARF]
       : [])
   ]
   const townEncounters: [string, number][] = [

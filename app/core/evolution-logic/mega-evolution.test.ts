@@ -1,10 +1,13 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import {
+  MEGA_MADNESS_SILK_SCARVES_PER_CAROUSEL,
   MegaCraftingItems,
   MegaEvolutions,
   MegaItemRecipe,
   MegaMadnessKeyStoneTownStages,
+  MegaMadnessSilkScarfCarouselStages,
+  MegaStatBoosts,
   MegaStones
 } from "../../config/game/megas"
 import Player from "../../models/colyseus-models/player"
@@ -152,6 +155,57 @@ test("Lucario's town carousel is mostly Key Stones with a few components", () =>
       assert.ok(item === Item.KEY_STONE || ItemComponents.includes(item), item)
     }
   }
+})
+
+test("Mega Madness carousels of some stages may offer Silk Scarves", () => {
+  for (const stageLevel of [4, 12, 17, 22]) {
+    const miniGame = new MiniGame({} as GameRoom)
+    miniGame.alivePlayers = Array.from({ length: 8 }, () => createPlayer())
+    for (const gameMode of [GameMode.MEGA_MADNESS, GameMode.CLASSIC]) {
+      const canHaveScarves =
+        gameMode === GameMode.MEGA_MADNESS &&
+        MegaMadnessSilkScarfCarouselStages.includes(stageLevel)
+      const counts = new Set<number>()
+      for (let run = 0; run < 50; run++) {
+        const state = new GameState(
+          "prep",
+          "test",
+          true,
+          gameMode,
+          null,
+          null,
+          null
+        )
+        state.stageLevel = stageLevel
+        counts.add(
+          miniGame.pickRandomItems(state).filter((i) => i === Item.SILK_SCARF)
+            .length
+        )
+      }
+      assert.deepEqual(
+        [...counts].sort(),
+        canHaveScarves ? [0, MEGA_MADNESS_SILK_SCARVES_PER_CAROUSEL] : [0],
+        `${gameMode} stage ${stageLevel}`
+      )
+    }
+  }
+})
+
+test("megas get the mega stat boosts over their template", () => {
+  const template = PokemonFactory.createPokemonFromName(Pkm.CHARIZARD)
+  const mega = PokemonFactory.createPokemonFromName(Pkm.MEGA_CHARIZARD_X)
+  assert.equal(
+    mega.hp,
+    Math.round(template.hp * (1 + MegaStatBoosts.hpPercent / 100))
+  )
+  assert.equal(
+    mega.atk,
+    Math.round(template.atk * (1 + MegaStatBoosts.atkPercent / 100))
+  )
+  assert.equal(mega.def, template.def + MegaStatBoosts.def)
+  assert.equal(mega.speDef, template.speDef + MegaStatBoosts.speDef)
+  assert.equal(mega.speed, template.speed + MegaStatBoosts.speed)
+  assert.equal(mega.ap, template.ap + MegaStatBoosts.ap)
 })
 
 test("pokemons with several forms can all mega evolve", () => {
