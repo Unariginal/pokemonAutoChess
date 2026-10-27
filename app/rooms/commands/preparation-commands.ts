@@ -81,7 +81,7 @@ async function fillEmptySlotsWithBots(room: PreparationRoom) {
   const existingBots = users.filter((u) => u.isBot).map((u) => u.uid)
 
   // prefer bots close to the players' level, then widen the search if not enough are found
-  let candidates: IBot[] = []
+  let candidates: Pick<IBot, "avatar" | "elo" | "name" | "id">[] = []
   for (const range of [150, 400, Infinity]) {
     const elo =
       range === Infinity
@@ -89,8 +89,8 @@ async function fillEmptySlotsWithBots(room: PreparationRoom) {
         : { $gte: averageElo - range, $lte: averageElo + range }
     candidates = await BotV2.find(
       { id: { $nin: existingBots }, approved: true, ...(elo ? { elo } : {}) },
-      ["avatar", "elo", "name", "id"]
-    ).lean()
+      "avatar elo name id"
+    ).lean<Pick<IBot, "avatar" | "elo" | "name" | "id">[]>()
     if (candidates.length >= nbMissing) break
   }
 
