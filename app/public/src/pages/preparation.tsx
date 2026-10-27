@@ -12,6 +12,7 @@ import { CloseCodes, CloseCodesMessages } from "../../../types/enum/CloseCodes"
 import { ConnectionStatus } from "../../../types/enum/ConnectionStatus"
 import { GameMode } from "../../../types/enum/Game"
 import type { NonFunctionPropNames } from "../../../types/HelperTypes"
+import { isDoubleUpMode } from "../../../utils/game-mode"
 import { logger } from "../../../utils/logger"
 import { useAppDispatch, useAppSelector } from "../hooks"
 import {
@@ -176,7 +177,7 @@ export default function Preparation() {
           dispatch(setUser(user))
           if (
             room.state.gameMode !== GameMode.CUSTOM_LOBBY &&
-            room.state.gameMode !== GameMode.DOUBLE_UP
+            !isDoubleUpMode(room.state.gameMode)
           ) {
             toggleReady(true) // automatically set users ready in non-classic game mode
           }

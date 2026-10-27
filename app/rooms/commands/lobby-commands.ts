@@ -658,6 +658,36 @@ export class JoinOrOpenRoomCommand extends Command<
         }
         break
       }
+
+      case GameMode.SCRIBBLE_DOUBLE_UP: {
+        const existingScribbleDoubleUp = this.room.rooms?.find(
+          (room) =>
+            room.name === "preparation" &&
+            room.metadata?.gameMode === GameMode.SCRIBBLE_DOUBLE_UP &&
+            room.clients < MAX_PLAYERS_PER_GAME
+        )
+        if (existingScribbleDoubleUp) {
+          client.send(Transfer.REQUEST_ROOM, existingScribbleDoubleUp.roomId)
+        } else {
+          return [new OpenGameCommand().setPayload({ gameMode, client })]
+        }
+        break
+      }
+
+      case GameMode.MEGA_MADNESS: {
+        const existingMegaMadness = this.room.rooms?.find(
+          (room) =>
+            room.name === "preparation" &&
+            room.metadata?.gameMode === GameMode.MEGA_MADNESS &&
+            room.clients < MAX_PLAYERS_PER_GAME
+        )
+        if (existingMegaMadness) {
+          client.send(Transfer.REQUEST_ROOM, existingMegaMadness.roomId)
+        } else {
+          return [new OpenGameCommand().setPayload({ gameMode, client })]
+        }
+        break
+      }
     }
   }
 }
@@ -707,6 +737,11 @@ export class OpenGameCommand extends Command<
     } else if (gameMode === GameMode.DOUBLE_UP) {
       roomName = "Double Up"
       ownerId = user.uid
+    } else if (gameMode === GameMode.SCRIBBLE_DOUBLE_UP) {
+      roomName = "Smeargle's Double Scribble"
+      ownerId = user.uid
+    } else if (gameMode === GameMode.MEGA_MADNESS) {
+      roomName = "Mega Madness"
     }
 
     const newRoom = await matchMaker.createRoom("preparation", {

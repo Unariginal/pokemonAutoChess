@@ -6,6 +6,7 @@ import WikiData from "./wiki-data"
 import WikiFaq from "./wiki-faq"
 import WikiGlossary from "./wiki-glossary"
 import WikiItems from "./wiki-items"
+import WikiMegaMadness from "./wiki-mega-madness"
 import WikiPokemons from "./wiki-pokemons"
 import WikiRegions from "./wiki-regions"
 import WikiStages from "./wiki-stages"
@@ -69,7 +70,12 @@ export default function Wiki({ inGame = false }: { inGame: boolean }) {
       label: t("wiki.nav.glossary_label"),
       content: <WikiGlossary />
     },
-    { key: "data", label: t("wiki.nav.data_label"), content: <WikiData /> }
+    { key: "data", label: t("wiki.nav.data_label"), content: <WikiData /> },
+    {
+      key: "mega_madness",
+      label: t("game_modes.MEGA_MADNESS"),
+      content: <WikiMegaMadness />
+    }
   ]
 
   const lastTabOpened = localStore.get(LocalStoreKeys.LAST_TAB_OPENED_WIKI)

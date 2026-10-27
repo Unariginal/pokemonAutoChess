@@ -1,5 +1,6 @@
 import { ARMOR_FACTOR, RegionDetails } from "../../config"
 import { DishByPkm } from "../../config/game/dishes"
+import { MegaStones } from "../../config/game/megas"
 import { StatusConfigs } from "../../config/game/statuses"
 import {
   GOURMET_COOK_DEFAULT_DURATION,
@@ -62,6 +63,7 @@ import {
 import { schemaValues } from "../../utils/schemas"
 import { AbilityStrategies } from "../abilities/abilities"
 import { EvolutionManager } from "../evolution-logic/evolution-manager"
+import { tryMegaEvolve } from "../evolution-logic/mega-evolution"
 import { FlowerPotMons } from "../flower-pots"
 import type { PokemonEntity } from "../pokemon-entity"
 import { DelayedCommand } from "../simulation-command"
@@ -736,6 +738,19 @@ export const ItemEffects: { [i in Item]?: (Effect | (() => Effect))[] } = {
         new OnItemDroppedEffect(
           ({ pokemon, item }) => !pokemon.types.has(SynergyGivenByItem[item])
         )
+      ]
+    ])
+  ),
+
+  // mega stones can only be held by the matching pokemon, which mega evolves while holding it
+  ...Object.fromEntries(
+    MegaStones.map((stone) => [
+      stone,
+      [
+        new OnItemDroppedEffect(({ pokemon, player, item }) => {
+          tryMegaEvolve(pokemon, player, item)
+          return false // the stone is equipped by tryMegaEvolve, or refused if the pokemon doesn't match
+        })
       ]
     ])
   ),

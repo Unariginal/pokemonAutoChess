@@ -9,7 +9,11 @@ import {
   MAX_PLAYERS_PER_GAME,
   MIN_HUMAN_PLAYERS
 } from "../../config"
-import { getEloRangeByBotDifficulty } from "../../config/game/bots"
+import {
+  AUTO_FILL_BOTS,
+  AUTO_FILL_BOTS_DELAY_IN_SECONDS,
+  getEloRangeByBotDifficulty
+} from "../../config/game/bots"
 import { GADGETS } from "../../config/game/gadgets"
 import {
   getPendingGame,
@@ -29,6 +33,7 @@ import { type BotDifficulty, GameMode } from "../../types/enum/Game"
 import type { SpecialGameRule } from "../../types/enum/SpecialGameRule"
 import type { IBot } from "../../types/models/bot-v2"
 import { getRank } from "../../utils/elo"
+import { isDoubleUpMode } from "../../utils/game-mode"
 import { logger } from "../../utils/logger"
 import { max } from "../../utils/number"
 import { cleanProfanity } from "../../utils/profanity-filter"
@@ -37,7 +42,7 @@ import { schemaEntries, schemaValues } from "../../utils/schemas"
 import type PreparationRoom from "../preparation-room"
 
 function autoAssignPartner(state: PreparationRoom["state"], uid: string) {
-  if (state.gameMode !== GameMode.DOUBLE_UP) return
+  if (!isDoubleUpMode(state.gameMode)) return
   const newUser = state.users.get(uid)
   if (!newUser) return
   const unpaired = schemaValues(state.users).find(
@@ -60,6 +65,89 @@ function autoAssignPartner(state: PreparationRoom["state"], uid: string) {
   newUser.doubleUpTeamId = teamId
   unpaired.doubleUpPartnerId = uid
   unpaired.doubleUpTeamId = teamId
+}
+
+async function fillEmptySlotsWithBots(room: PreparationRoom) {
+  const state = room.state
+  const nbMissing = MAX_PLAYERS_PER_GAME - state.users.size
+  if (nbMissing <= 0) return
+
+  const users = schemaValues(state.users)
+  const humans = users.filter((u) => !u.isBot)
+  const averageElo =
+    humans.length > 0
+      ? humans.reduce((sum, u) => sum + u.elo, 0) / humans.length
+      : 1000
+  const existingBots = users.filter((u) => u.isBot).map((u) => u.uid)
+
+  // prefer bots close to the players' level, then widen the search if not enough are found
+  let candidates: IBot[] = []
+  for (const range of [150, 400, Infinity]) {
+    const elo =
+      range === Infinity
+        ? undefined
+        : { $gte: averageElo - range, $lte: averageElo + range }
+    candidates = await BotV2.find(
+      { id: { $nin: existingBots }, approved: true, ...(elo ? { elo } : {}) },
+      ["avatar", "elo", "name", "id"]
+    ).lean()
+    if (candidates.length >= nbMissing) break
+  }
+
+  const bots = shuffleArray(candidates)
+  // check again the lobby size because of the async request ahead
+  while (state.users.size < MAX_PLAYERS_PER_GAME && bots.length > 0) {
+    const bot = bots.pop()!
+    state.users.set(
+      bot.id,
+      new GameUser(
+        bot.id,
+        bot.name,
+        bot.elo,
+        99, // arbitrary number of games played
+        bot.avatar,
+        true,
+        true,
+        "",
+        Role.BOT,
+        false
+      )
+    )
+    if (isDoubleUpMode(state.gameMode)) {
+      autoAssignPartner(state, bot.id)
+    }
+  }
+  if (bots.length === candidates.length) return // no bot added
+  room.updatePlayersInfo()
+  state.addMessage({
+    authorId: "server",
+    payload: `Empty slots have been filled with bots.`
+  })
+}
+
+// lobbies without an owner can't be started manually, so start them with bots after a delay
+function scheduleBotFill(room: PreparationRoom) {
+  const state = room.state
+  if (
+    !AUTO_FILL_BOTS ||
+    state.gameMode === GameMode.CUSTOM_LOBBY ||
+    state.gameMode === GameMode.TOURNAMENT ||
+    state.gameStartedAt != null ||
+    state.users.size >= MAX_PLAYERS_PER_GAME
+  )
+    return
+
+  state.botFillCountdown?.clear()
+  state.addMessage({
+    authorId: "server",
+    payload: `If the lobby isn't full in ${AUTO_FILL_BOTS_DELAY_IN_SECONDS} seconds, empty slots will be filled with bots and the game will start.`
+  })
+  state.botFillCountdown = room.clock.setTimeout(() => {
+    state.botFillCountdown = null
+    const hasHumans = schemaValues(state.users).some((u) => !u.isBot)
+    if (!hasHumans || state.gameStartedAt != null) return
+    room.dispatcher.dispatch(new OnGameStartRequestCommand())
+  }, AUTO_FILL_BOTS_DELAY_IN_SECONDS * 1000)
 }
 
 export class OnJoinCommand extends Command<
@@ -177,7 +265,7 @@ export class OnJoinCommand extends Command<
         this.room.updatePlayersInfo()
 
         // auto-pair in Double Up mode
-        if (this.room.state.gameMode === GameMode.DOUBLE_UP) {
+        if (isDoubleUpMode(this.room.state.gameMode)) {
           autoAssignPartner(this.state, u.uid)
         }
 
@@ -192,7 +280,7 @@ export class OnJoinCommand extends Command<
 
         if (
           this.state.gameMode !== GameMode.CUSTOM_LOBBY &&
-          this.state.gameMode !== GameMode.DOUBLE_UP
+          !isDoubleUpMode(this.state.gameMode)
         ) {
           this.clock.setTimeout(() => {
             if (
@@ -210,6 +298,7 @@ export class OnJoinCommand extends Command<
           payload: `${u.displayName} joined.`,
           avatar: u.avatar
         })
+        scheduleBotFill(this.room)
       }
 
       while (this.state.users.size > MAX_PLAYERS_PER_GAME) {
@@ -234,7 +323,7 @@ export class OnJoinCommand extends Command<
       // Ready up cooldown
       const nbExpectedPlayers = MAX_PLAYERS_PER_GAME
       if (
-        this.state.gameMode === GameMode.DOUBLE_UP &&
+        isDoubleUpMode(this.state.gameMode) &&
         this.state.users.size === nbExpectedPlayers
       ) {
         this.room.state.addMessage({
@@ -300,23 +389,28 @@ export class OnGameStartRequestCommand extends Command<
         return
       }
 
-      if (this.state.users.size < 2) {
+      if (
+        !allUsersReady &&
+        (this.state.gameMode === GameMode.CUSTOM_LOBBY ||
+          isDoubleUpMode(this.state.gameMode))
+      ) {
         this.state.addMessage({
           authorId: "Server",
-          payload: `Add bots or wait for more players to join your room.`,
+          payload: `Not all players are ready.`,
           avatar: "0079/Sigh"
         })
         return
       }
 
-      if (
-        !allUsersReady &&
-        (this.state.gameMode === GameMode.CUSTOM_LOBBY ||
-          this.state.gameMode === GameMode.DOUBLE_UP)
-      ) {
+      if (AUTO_FILL_BOTS && this.state.gameMode !== GameMode.TOURNAMENT) {
+        await fillEmptySlotsWithBots(this.room)
+        if (this.state.gameStartedAt != null) return // started during the bot lookup
+      }
+
+      if (this.state.users.size < 2) {
         this.state.addMessage({
           authorId: "Server",
-          payload: `Not all players are ready.`,
+          payload: `Add bots or wait for more players to join your room.`,
           avatar: "0079/Sigh"
         })
         return
@@ -372,7 +466,7 @@ export class OnGameStartRequestCommand extends Command<
         this.room.lock()
         this.room.autoDispose = true // re-enable auto dispose for tournament games
 
-        if (this.state.gameMode === GameMode.DOUBLE_UP) {
+        if (isDoubleUpMode(this.state.gameMode)) {
           const userList = schemaValues(this.state.users)
           const paired: Set<string> = new Set()
           let teamIndex = 0
@@ -757,7 +851,7 @@ export class OnToggleReadyCommand extends Command<
       // cannot toggle ready in classic / ranked / tournament game mode
       if (
         this.room.state.gameMode !== GameMode.CUSTOM_LOBBY &&
-        this.room.state.gameMode !== GameMode.DOUBLE_UP &&
+        !isDoubleUpMode(this.room.state.gameMode) &&
         ready !== true
       )
         return
@@ -864,7 +958,7 @@ export class InitializeBotsCommand extends Command<
                 false
               )
             )
-            if (this.room.state.gameMode === GameMode.DOUBLE_UP) {
+            if (isDoubleUpMode(this.room.state.gameMode)) {
               autoAssignPartner(this.state, bot.id)
             }
           })
@@ -950,7 +1044,7 @@ export class OnAddBotCommand extends Command<PreparationRoom, OnAddBotPayload> {
         )
 
         this.room.updatePlayersInfo()
-        if (this.room.state.gameMode === GameMode.DOUBLE_UP) {
+        if (isDoubleUpMode(this.room.state.gameMode)) {
           autoAssignPartner(this.state, bot.id)
         }
         this.room.state.addMessage({

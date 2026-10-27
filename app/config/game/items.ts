@@ -116,7 +116,19 @@ export const ItemStats: { [item in Item]?: { [stat in Stat]?: number } } = {
   [Item.EFFICIENT_BANDANNA]: { [Stat.SHIELD]: 15, [Stat.PP]: 15 },
   [Item.TATSUGIRI_CURLY]: { [Stat.HP]: 50, [Stat.ATK]: 8 },
   [Item.TATSUGIRI_DROOPY]: { [Stat.HP]: 50, [Stat.DEF]: 8 },
-  [Item.TATSUGIRI_STRETCHY]: { [Stat.HP]: 50, [Stat.SPEED]: 25 }
+  [Item.TATSUGIRI_STRETCHY]: { [Stat.HP]: 50, [Stat.SPEED]: 25 },
+  // Mega Madness crafting items: Key Stone is a component, shards give the stat of their component boosted
+  [Item.KEY_STONE]: { [Stat.HP]: 10, [Stat.AP]: 5 },
+  [Item.VERDANT_MEGA_SHARD]: { [Stat.HP]: 25 },
+  [Item.TIDAL_MEGA_SHARD]: { [Stat.PP]: 25 },
+  [Item.HEART_MEGA_SHARD]: { [Stat.DEF]: 5 },
+  [Item.FROST_MEGA_SHARD]: { [Stat.SPE_DEF]: 5 },
+  [Item.BLAZE_MEGA_SHARD]: { [Stat.ATK]: 5 },
+  [Item.VOLT_MEGA_SHARD]: { [Stat.SPEED]: 15 },
+  [Item.SHADOW_MEGA_SHARD]: { [Stat.CRIT_CHANCE]: 15 },
+  [Item.MIND_MEGA_SHARD]: { [Stat.AP]: 15 },
+  [Item.ANCIENT_MEGA_SHARD]: { [Stat.DEF]: 3, [Stat.SPE_DEF]: 3 },
+  [Item.SILK_MEGA_SHARD]: { [Stat.SHIELD]: 25 }
 }
 
 export const ItemSellPricesAtTown: { [item in ItemsSoldAtTown]?: number } = {

@@ -30,7 +30,7 @@ import {
 } from "../../../../types"
 import { DungeonMusic } from "../../../../types/enum/Dungeon"
 import {
-  GameMode,
+  type GameMode,
   GamePhaseState,
   Orientation,
   PokemonActionState,
@@ -47,6 +47,7 @@ import { TownEncounters } from "../../../../types/enum/TownEncounter"
 import { Weather } from "../../../../types/enum/Weather"
 import type { NonFunctionPropNames } from "../../../../types/HelperTypes"
 import { isOnBench } from "../../../../utils/board"
+import { isDoubleUpMode } from "../../../../utils/game-mode"
 import { logger } from "../../../../utils/logger"
 import { randomBetween } from "../../../../utils/random"
 import { schemaValues } from "../../../../utils/schemas"
@@ -252,10 +253,7 @@ export default class BoardManager {
       this.showLightCell()
     }
 
-    if (
-      this.state.gameMode === GameMode.DOUBLE_UP &&
-      this.mode !== BoardMode.TOWN
-    ) {
+    if (isDoubleUpMode(this.state.gameMode) && this.mode !== BoardMode.TOWN) {
       this.renderTradingPlatform()
     }
 
@@ -1000,7 +998,7 @@ export default class BoardManager {
               this.animateTrainingBag() // make training bag swing when a pokemon is training on it
             }
           } else if (action === PokemonActionState.COOK) {
-            pokemonSprite.orientation = Orientation.DOWN           
+            pokemonSprite.orientation = Orientation.DOWN
             pokemonSprite.addLifeBar({
               scene: this.scene,
               showHP: false,

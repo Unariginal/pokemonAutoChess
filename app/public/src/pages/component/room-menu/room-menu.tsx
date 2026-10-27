@@ -108,6 +108,14 @@ export default function RoomMenu() {
           <span>{t(`game_modes.${GameMode.DOUBLE_UP}`)}</span>
         </Tab>
         <Tab>
+          <GameModeIcon gameMode={GameMode.SCRIBBLE_DOUBLE_UP} />
+          <span>{t(`game_modes.${GameMode.SCRIBBLE_DOUBLE_UP}`)}</span>
+        </Tab>
+        <Tab>
+          <GameModeIcon gameMode={GameMode.MEGA_MADNESS} />
+          <span>{t(`game_modes.${GameMode.MEGA_MADNESS}`)}</span>
+        </Tab>
+        <Tab>
           <GameModeIcon gameMode={GameMode.CUSTOM_LOBBY} />
           <span>{t(`game_modes.${GameMode.CUSTOM_LOBBY}`)}</span>
         </Tab>
@@ -137,6 +145,12 @@ export default function RoomMenu() {
       </TabPanel>
       <TabPanel>
         <IngameRoomsList gameMode={GameMode.DOUBLE_UP} />
+      </TabPanel>
+      <TabPanel>
+        <IngameRoomsList gameMode={GameMode.SCRIBBLE_DOUBLE_UP} />
+      </TabPanel>
+      <TabPanel>
+        <IngameRoomsList gameMode={GameMode.MEGA_MADNESS} />
       </TabPanel>
       <TabPanel>
         <IngameRoomsList gameMode={GameMode.CUSTOM_LOBBY} />

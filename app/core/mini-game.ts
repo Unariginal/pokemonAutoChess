@@ -15,6 +15,10 @@ import {
   TownEncounterSellPrice,
   TownEncountersByStage
 } from "../config"
+import {
+  MEGA_MADNESS_KEY_STONE_TOWN_CHANCE,
+  MegaMadnessKeyStoneTownStages
+} from "../config/game/megas"
 import { FloatingItem } from "../models/colyseus-models/floating-item"
 import type Player from "../models/colyseus-models/player"
 import { PlayerChoice } from "../models/colyseus-models/player-choice"
@@ -30,7 +34,7 @@ import {
   Transfer
 } from "../types"
 import { DungeonPMDO } from "../types/enum/Dungeon"
-import { PokemonActionState } from "../types/enum/Game"
+import { GameMode, PokemonActionState } from "../types/enum/Game"
 import {
   CraftableItemsNoScarves,
   CraftableNoStonesOrScarves,
@@ -268,12 +272,21 @@ export class MiniGame {
     this.rotationDirection = 1
 
     if (stageLevel in TownEncountersByStage) {
+      const encounterWeights = { ...TownEncountersByStage[stageLevel] }
+      if (
+        state.gameMode === GameMode.MEGA_MADNESS &&
+        MegaMadnessKeyStoneTownStages.includes(stageLevel)
+      ) {
+        encounterWeights[TownEncounters.LUCARIO] =
+          MEGA_MADNESS_KEY_STONE_TOWN_CHANCE
+      }
       let encounter = randomWeighted(
-        TownEncountersByStage[stageLevel],
+        encounterWeights,
         state.specialGameRule === SpecialGameRule.TOWN_FESTIVAL ? undefined : 1
       ) as TownEncounter | null
       if (
         encounter != null &&
+        encounter !== TownEncounters.LUCARIO && // Key Stone town can come back in Mega Madness
         state.townEncounters.has(encounter) &&
         state.specialGameRule !== SpecialGameRule.TOWN_FESTIVAL
       ) {
@@ -524,7 +537,7 @@ export class MiniGame {
     let maxCopiesPerItem = 2
     let itemsSet: readonly Item[] = ItemComponentsNoFossilOrScarf
 
-    if (stageLevel >= 20) {
+    if (stageLevel >= 20 && encounter !== TownEncounters.LUCARIO) {
       // Carousels after stage 20 propose full items and no longer components, and have one more proposition
       nbItemsToPick += 1
       maxCopiesPerItem = 1
@@ -585,6 +598,13 @@ export class MiniGame {
         Item.SILK_SCARF,
         Item.SILK_SCARF
       )
+    }
+
+    if (encounter === TownEncounters.LUCARIO) {
+      // mostly Key Stones, with a few components left over
+      const nbKeyStones = Math.max(this.alivePlayers.length, 4)
+      for (let i = 0; i < nbKeyStones; i++) items.push(Item.KEY_STONE)
+      nbItemsToPick = 3
     }
 
     if (encounter === TownEncounters.LUDICOLO) {

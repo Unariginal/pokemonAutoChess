@@ -31,6 +31,7 @@
 
   &.noelo,
   &.scribble,
+  &.scribble_double_up,
   &.classic {
     border-radius: 50%;
   }

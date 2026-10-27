@@ -26,6 +26,7 @@ import type { Pkm } from "../../types/enum/Pokemon"
 import { SpecialGameRule } from "../../types/enum/SpecialGameRule"
 import type { TownEncounter } from "../../types/enum/TownEncounter"
 import { Weather } from "../../types/enum/Weather"
+import { isScribbleMode } from "../../utils/game-mode"
 import { pickRandomIn, randomBetween } from "../../utils/random"
 
 export default class GameState extends Schema {
@@ -88,7 +89,7 @@ export default class GameState extends Schema {
     this.maxRank = maxRank
     this.weather = Weather.NEUTRAL
 
-    if (gameMode === GameMode.SCRIBBLE) {
+    if (isScribbleMode(gameMode)) {
       this.specialGameRule = pickRandomIn(Object.values(SpecialGameRule))
     } else {
       this.specialGameRule = specialGameRule

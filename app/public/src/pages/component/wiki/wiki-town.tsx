@@ -3,6 +3,7 @@ import {
   TownEncounterSellPrice,
   TownEncountersByStage
 } from "../../../../../config"
+import { MegaMadnessKeyStoneTownStages } from "../../../../../config/game/megas"
 import { PkmIndex } from "../../../../../types/enum/Pokemon"
 import {
   type TownEncounter,
@@ -36,10 +37,12 @@ export default function WikiTown() {
                 }}
               >
                 {t("stages")}:<br />
-                {Object.keys(TownEncountersByStage)
-                  .filter((s) => encounter in TownEncountersByStage[s])
-                  .map((s) => s)
-                  .join(", ")}
+                {encounter === TownEncounters.LUCARIO
+                  ? `${MegaMadnessKeyStoneTownStages.join(", ")} (${t("wiki.town.mega_madness_only")})`
+                  : Object.keys(TownEncountersByStage)
+                      .filter((s) => encounter in TownEncountersByStage[s])
+                      .map((s) => s)
+                      .join(", ")}
               </span>
             </header>
             <p className="description">

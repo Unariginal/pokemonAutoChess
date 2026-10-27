@@ -607,6 +607,18 @@ export default class MinigameManager {
       name: Pkm.CHIMECHO
     })
 
+    // Mega Madness only: Lucario does not live in town, it only comes for its encounter
+    if (encounter === TownEncounters.LUCARIO) {
+      this.villagers.push(
+        new PokemonSpecial({
+          scene: this.scene,
+          x: cx,
+          y: cy,
+          name: Pkm.LUCARIO
+        })
+      )
+    }
+
     if (encounter !== TownEncounters.LAPRAS) {
       lapras.moveManager.setSpeed(15)
       lapras.moveManager.moveTo(8 * 48, 4 * 48)

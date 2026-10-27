@@ -25,7 +25,6 @@ import { EffectEnum, type EnvironmentalEffect } from "../types/enum/Effect"
 import {
   AttackType,
   BattleResult,
-  GameMode,
   Orientation,
   PokemonActionState,
   Rarity,
@@ -46,6 +45,7 @@ import type { IPokemonData } from "../types/interfaces/PokemonData"
 import { count, deduplicateArray, isIn, removeInArray } from "../utils/array"
 import { getAvatarString } from "../utils/avatar"
 import { isOnBench } from "../utils/board"
+import { isDoubleUpMode } from "../utils/game-mode"
 import { logger } from "../utils/logger"
 import { max } from "../utils/number"
 import { pickRandomIn, randomBetween, shuffleArray } from "../utils/random"
@@ -185,7 +185,10 @@ export default class Simulation extends Schema implements ISimulation {
     this.finished = false
     this.winnerId = ""
     const { initialDelayMinMs, initialDelayMaxMs } = WeatherConfigs.STORM
-    this.stormLightningTimer = randomBetween(initialDelayMinMs, initialDelayMaxMs)
+    this.stormLightningTimer = randomBetween(
+      initialDelayMinMs,
+      initialDelayMaxMs
+    )
     if (
       SynergyTiers[Synergy.AQUATIC].some(
         (e) => this.blueEffects.has(e) || this.redEffects.has(e)
@@ -1243,8 +1246,15 @@ export default class Simulation extends Schema implements ISimulation {
       case EffectEnum.WINDY: {
         const nbFloatStones = player ? count(player.items, Item.FLOAT_STONE) : 0
         const { flyingSpeedBonus, speedBonus } = WeatherConfigs.WINDY
-        const speedBuff = pokemon.types.has(Synergy.FLYING) ? flyingSpeedBonus : speedBonus
-        pokemon.addSpeed(speedBuff + nbFloatStones * 10, "environment", 0, false)
+        const speedBuff = pokemon.types.has(Synergy.FLYING)
+          ? flyingSpeedBonus
+          : speedBonus
+        pokemon.addSpeed(
+          speedBuff + nbFloatStones * 10,
+          "environment",
+          0,
+          false
+        )
         break
       }
 
@@ -1355,7 +1365,8 @@ export default class Simulation extends Schema implements ISimulation {
     })
 
     if (this.weather === Weather.STORM) {
-      const { intervalMinMs, intervalMaxMs, lightningDamage } = WeatherConfigs.STORM
+      const { intervalMinMs, intervalMaxMs, lightningDamage } =
+        WeatherConfigs.STORM
       this.stormLightningTimer -= dt
       if (this.stormLightningTimer <= 0 && !this.finished) {
         this.stormLightningTimer = randomBetween(intervalMinMs, intervalMaxMs)
@@ -1577,7 +1588,7 @@ export default class Simulation extends Schema implements ISimulation {
 
         if (
           !isGhostPlayer &&
-          !(this.room.state.gameMode === GameMode.DOUBLE_UP && !isPvE)
+          !(isDoubleUpMode(this.room.state.gameMode) && !isPvE)
         ) {
           player.life -= playerDamage
           if (playerDamage > 0) {

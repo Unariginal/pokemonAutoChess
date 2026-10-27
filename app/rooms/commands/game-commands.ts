@@ -13,6 +13,7 @@ import {
   ItemSellPricesAtTown,
   MAX_PLAYERS_PER_GAME,
   OUTLAW_GOLD_REWARD,
+  PICK_PHASE_BONUS_DURATION,
   PkmsWithAltForms,
   PORTAL_CAROUSEL_BASE_DURATION,
   PortalCarouselStages,
@@ -23,6 +24,12 @@ import {
   TREASURE_BOX_LIFE_THRESHOLD,
   UNOWN_ENCOUNTER_CHANCE
 } from "../../config"
+import {
+  MEGA_MADNESS_KEY_STONE_PVE_STAGE,
+  MegaCraftingItems,
+  MegaItemRecipe,
+  MegaStones
+} from "../../config/game/megas"
 import { AbilityStrategies } from "../../core/abilities/abilities"
 import { castAbility } from "../../core/abilities/cast"
 import { getAltFormForPlayer } from "../../core/alt-form-logic"
@@ -42,6 +49,7 @@ import { PassiveEffects } from "../../core/effects/passives"
 import { SynergyEffects } from "../../core/effects/synergies"
 import { giveRandomEgg } from "../../core/eggs"
 import { EvolutionManager } from "../../core/evolution-logic/evolution-manager"
+import { tryMegaEvolve } from "../../core/evolution-logic/mega-evolution"
 import { getFlowerPotsUnlocked } from "../../core/flower-pots"
 import { selectDoubleUpMatchups, selectMatchups } from "../../core/matchmaking"
 import { canSell, PokemonEntity } from "../../core/pokemon-entity"
@@ -143,6 +151,7 @@ import {
   isPositionEmpty
 } from "../../utils/board"
 import { repeat } from "../../utils/function"
+import { isDoubleUpMode } from "../../utils/game-mode"
 import { logger } from "../../utils/logger"
 import { max } from "../../utils/number"
 import {
@@ -647,7 +656,10 @@ export class OnDragDropCombineCommand extends Command<
       return
     } else {
       // find recipe result
-      const recipes = Object.entries(ItemRecipe) as [Item, Item[]][]
+      const recipes = Object.entries({
+        ...ItemRecipe,
+        ...MegaItemRecipe
+      }) as [Item, Item[]][]
       for (const [key, value] of recipes) {
         if (
           (value[0] == itemA && value[1] == itemB) ||
@@ -663,7 +675,10 @@ export class OnDragDropCombineCommand extends Command<
       client.send(Transfer.DRAG_DROP_CANCEL, message)
       return
     } else {
-      if (itemA === Item.SILK_SCARF || itemB === Item.SILK_SCARF) {
+      if (
+        (itemA === Item.SILK_SCARF || itemB === Item.SILK_SCARF) &&
+        !(result in MegaItemRecipe)
+      ) {
         player.scarvesItems.push(result)
       }
 
@@ -851,10 +866,20 @@ export class OnDragDropItemCommand extends Command<
       return
     }
 
-    const isBasicItem = ItemComponents.includes(item)
-    const existingBasicItemToCombine = schemaValues(pokemon.items).find((i) =>
-      ItemComponents.includes(i)
-    )
+    // Key Stone and Mega Shards can be combined like components to craft mega stones
+    const isCombinable = (i: Item) =>
+      ItemComponents.includes(i) || MegaCraftingItems.includes(i)
+    const allRecipes = { ...ItemRecipe, ...MegaItemRecipe }
+    const findRecipe = (a: Item, b: Item) =>
+      Object.entries(allRecipes).find(
+        ([_result, recipe]) =>
+          (recipe[0] === a && recipe[1] === b) ||
+          (recipe[0] === b && recipe[1] === a)
+      )
+    const isBasicItem = isCombinable(item)
+    const heldCombinables = schemaValues(pokemon.items).filter(isCombinable)
+    const existingBasicItemToCombine =
+      heldCombinables.find((i) => findRecipe(i, item)) ?? heldCombinables[0]
 
     // check if full items and nothing to combine
     if (
@@ -881,11 +906,7 @@ export class OnDragDropItemCommand extends Command<
     }
 
     if (isBasicItem && existingBasicItemToCombine) {
-      const recipe = Object.entries(ItemRecipe).find(
-        ([_result, recipe]) =>
-          (recipe[0] === existingBasicItemToCombine && recipe[1] === item) ||
-          (recipe[0] === item && recipe[1] === existingBasicItemToCombine)
-      )
+      const recipe = findRecipe(existingBasicItemToCombine, item)
 
       if (!recipe) {
         client.send(Transfer.DRAG_DROP_CANCEL, message)
@@ -894,7 +915,21 @@ export class OnDragDropItemCommand extends Command<
 
       const itemCombined = recipe[0] as Item
 
-      if (recipe[1].includes(Item.SILK_SCARF)) {
+      if (isIn(MegaStones, itemCombined)) {
+        // the matching pokemon holds the stone and mega evolves, otherwise the stone goes to player inventory
+        pokemon.items.delete(existingBasicItemToCombine)
+        removeInArray(player.items, item)
+        player.items.push(itemCombined)
+        if (!tryMegaEvolve(pokemon, player, itemCombined)) {
+          player.updateSynergies()
+        }
+        return
+      }
+
+      if (
+        recipe[1].includes(Item.SILK_SCARF) &&
+        !(itemCombined in MegaItemRecipe)
+      ) {
         const nbScarvesBasedOnNormalSynergy = getSynergyTier(
           player.synergies,
           Synergy.NORMAL
@@ -1170,7 +1205,7 @@ export class OnUpdateCommand extends Command<
           }
         })
 
-        if (this.state.gameMode === GameMode.DOUBLE_UP) {
+        if (isDoubleUpMode(this.state.gameMode)) {
           this.checkDoubleUpReinforcements()
         }
         if (everySimulationFinished && !this.state.updatePhaseNeeded) {
@@ -1360,7 +1395,7 @@ export class OnUpdatePhaseCommand extends Command<GameRoom> {
   }
 
   checkEndGame(): boolean {
-    if (this.state.gameMode === GameMode.DOUBLE_UP) {
+    if (isDoubleUpMode(this.state.gameMode)) {
       return this.checkEndGameDoubleUp()
     }
 
@@ -1475,7 +1510,7 @@ export class OnUpdatePhaseCommand extends Command<GameRoom> {
     })
 
     // Pass 2: rank all dead together
-    if (newlyDead.length > 0 && this.state.gameMode === GameMode.DOUBLE_UP) {
+    if (newlyDead.length > 0 && isDoubleUpMode(this.state.gameMode)) {
       this.room.rankPlayers()
     }
 
@@ -1491,7 +1526,9 @@ export class OnUpdatePhaseCommand extends Command<GameRoom> {
   initializePickingPhase() {
     this.state.phase = GamePhaseState.PICK
     this.state.time =
-      (StageDuration[this.state.stageLevel] ?? StageDuration.DEFAULT) * 1000
+      ((StageDuration[this.state.stageLevel] ?? StageDuration.DEFAULT) +
+        PICK_PHASE_BONUS_DURATION) *
+      1000
 
     if (
       [2, 4].includes(this.state.stageLevel) &&
@@ -1564,7 +1601,7 @@ export class OnUpdatePhaseCommand extends Command<GameRoom> {
     }
 
     if (
-      this.state.gameMode === GameMode.DOUBLE_UP &&
+      isDoubleUpMode(this.state.gameMode) &&
       GiftShopStages.includes(this.state.stageLevel)
     ) {
       const givers: Player[] = []
@@ -1902,7 +1939,7 @@ export class OnUpdatePhaseCommand extends Command<GameRoom> {
       }
     })
 
-    if (this.state.gameMode === GameMode.DOUBLE_UP) {
+    if (isDoubleUpMode(this.state.gameMode)) {
       this.applyDoubleUpRoundDamage()
       this.syncTeamLife()
       this.room.rankPlayers()
@@ -1926,7 +1963,10 @@ export class OnUpdatePhaseCommand extends Command<GameRoom> {
 
     if (!isGameFinished) {
       this.state.stageLevel += 1
-      this.room.setMetadata({ ...this.room.metadata, stageLevel: this.state.stageLevel })
+      this.room.setMetadata({
+        ...this.room.metadata,
+        stageLevel: this.state.stageLevel
+      })
       this.computeIncome(isPVE, this.state.specialGameRule)
       this.state.players.forEach((player: Player) => {
         player.wanderers.clear()
@@ -2117,6 +2157,12 @@ export class OnUpdatePhaseCommand extends Command<GameRoom> {
           const rewards =
             pveStage.getRewards?.(player, this.state.shinyEncounter) ??
             ([] as Item[])
+          if (
+            this.state.gameMode === GameMode.MEGA_MADNESS &&
+            this.state.stageLevel === MEGA_MADNESS_KEY_STONE_PVE_STAGE
+          ) {
+            rewards.push(Item.KEY_STONE)
+          }
           resetArraySchema(player.pveRewards, rewards)
 
           const rewardsPropositions =
@@ -2147,10 +2193,9 @@ export class OnUpdatePhaseCommand extends Command<GameRoom> {
         }
       })
     } else {
-      const matchups =
-        this.state.gameMode === GameMode.DOUBLE_UP
-          ? selectDoubleUpMatchups(this.state)
-          : selectMatchups(this.state)
+      const matchups = isDoubleUpMode(this.state.gameMode)
+        ? selectDoubleUpMatchups(this.state)
+        : selectMatchups(this.state)
       this.state.simulationPaused = true // 2 seconds pause for portal transition animation
 
       matchups.forEach((matchup) => {

@@ -1,5 +1,7 @@
+import { MegaPkms } from "../../config/game/megas"
 import { Rarity } from "../../types/enum/Game"
 import type { Pkm } from "../../types/enum/Pokemon"
+import { isIn } from "../../utils/array"
 import type { Pokemon } from "../colyseus-models/pokemon"
 import { precomputedPokemonsImplemented } from "./precomputed-pokemons"
 
@@ -11,6 +13,8 @@ const data = Object.fromEntries<Pokemon[]>(rarities.map((r) => [r, []])) as {
 }
 
 precomputedPokemonsImplemented.forEach((pokemon) => {
+  // megas can only be obtained by mega evolution in Mega Madness
+  if (isIn(MegaPkms, pokemon.name)) return
   data[pokemon.rarity].push(pokemon)
 })
 

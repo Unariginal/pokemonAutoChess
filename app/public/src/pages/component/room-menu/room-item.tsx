@@ -99,6 +99,12 @@ export default function RoomItem(props: {
       {props.room.metadata?.gameMode === GameMode.SCRIBBLE && (
         <GameModeIcon gameMode={GameMode.SCRIBBLE} />
       )}
+      {props.room.metadata?.gameMode === GameMode.SCRIBBLE_DOUBLE_UP && (
+        <GameModeIcon gameMode={GameMode.SCRIBBLE_DOUBLE_UP} />
+      )}
+      {props.room.metadata?.gameMode === GameMode.MEGA_MADNESS && (
+        <GameModeIcon gameMode={GameMode.MEGA_MADNESS} />
+      )}
       {props.room.metadata?.noElo &&
         props.room.metadata?.gameMode === GameMode.CUSTOM_LOBBY && (
           <img

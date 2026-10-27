@@ -13,6 +13,7 @@ import { BotDifficulty, GameMode } from "../../../../../types/enum/Game"
 import { SpecialGameRule } from "../../../../../types/enum/SpecialGameRule"
 import { formatMinMaxRanks } from "../../../../../utils/elo"
 import { throttle } from "../../../../../utils/function"
+import { isDoubleUpMode, isScribbleMode } from "../../../../../utils/game-mode"
 import { max } from "../../../../../utils/number"
 import { keys } from "../../../../../utils/object"
 import { setTitleNotificationIcon } from "../../../../../utils/window"
@@ -150,7 +151,7 @@ export default function PreparationMenu() {
         </p>
       )}
 
-      {(gameMode === GameMode.SCRIBBLE || specialGameRule != null) && (
+      {(isScribbleMode(gameMode) || specialGameRule != null) && (
         <p>
           <GameModeIcon gameMode={gameMode} />
           {t("smeargle_scribble_hint")}
@@ -328,7 +329,7 @@ export default function PreparationMenu() {
   )
 
   const readyButton = (gameMode === GameMode.CUSTOM_LOBBY ||
-    gameMode === GameMode.DOUBLE_UP ||
+    isDoubleUpMode(gameMode) ||
     !isReady) &&
     users.length > 0 && (
       <button
@@ -365,9 +366,9 @@ export default function PreparationMenu() {
       </header>
 
       <div
-        className={`preparation-menu-users${gameMode === GameMode.DOUBLE_UP ? " double-up" : ""}`}
+        className={`preparation-menu-users${isDoubleUpMode(gameMode) ? " double-up" : ""}`}
       >
-        {gameMode === GameMode.DOUBLE_UP
+        {isDoubleUpMode(gameMode)
           ? (() => {
               const paired: Set<string> = new Set()
               const teams: IGameUser[][] = []

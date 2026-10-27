@@ -1,10 +1,16 @@
 ﻿import {
+  MegaEvolutions,
+  type MegaPkm,
+  MegaPkms
+} from "../../../../config/game/megas"
+import {
   AnimationType,
   AttackSprite,
   HitSprite,
   type PokemonAnimationConfig
 } from "../../../../types/Animation"
 import { Pkm } from "../../../../types/enum/Pokemon"
+import { isIn } from "../../../../utils/array"
 
 export const DEFAULT_POKEMON_ANIMATION_CONFIG: Required<PokemonAnimationConfig> =
   {
@@ -29,8 +35,8 @@ export const DEFAULT_POKEMON_ANIMATION_CONFIG: Required<PokemonAnimationConfig> 
     animationsOriented: {}
   } as const
 
-export const PokemonAnimations: {
-  [key in Pkm]: PokemonAnimationConfig
+const BasePokemonAnimations: {
+  [key in Exclude<Pkm, MegaPkm>]: PokemonAnimationConfig
 } = {
   [Pkm.DEFAULT]: {
     attack: AnimationType.Attack,
@@ -8145,5 +8151,33 @@ export const PokemonAnimations: {
     attackSprite: AttackSprite.STEEL_RANGE,
     hitSprite: HitSprite.ELECTRIC_HIT,
     shinyUnavailable: true
+  },
+  // placeholder sprites of Litleo and Pyroar are based on Shinx and Luxray
+  [Pkm.LITLEO]: {
+    attack: AnimationType.Attack,
+    ability: AnimationType.Shoot,
+    emote: AnimationType.Pose,
+    attackSprite: AttackSprite.FIRE_MELEE,
+    hitSprite: HitSprite.FIRE_HIT
+  },
+  [Pkm.PYROAR]: {
+    attack: AnimationType.Attack,
+    ability: AnimationType.Shoot,
+    emote: AnimationType.Shake,
+    attackSprite: AttackSprite.FIRE_MELEE,
+    hitSprite: HitSprite.FIRE_HIT
   }
+}
+
+// megas use the same animations as their template form
+export const PokemonAnimations: {
+  [key in Pkm]: PokemonAnimationConfig
+} = {
+  ...BasePokemonAnimations,
+  ...(Object.fromEntries(
+    MegaEvolutions.filter((m) => isIn(MegaPkms, m.mega)).map((m) => [
+      m.mega,
+      BasePokemonAnimations[m.template as Exclude<Pkm, MegaPkm>]
+    ])
+  ) as Record<MegaPkm, PokemonAnimationConfig>)
 }

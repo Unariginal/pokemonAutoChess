@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import type { IGameUser } from "../../../../../models/colyseus-models/game-user"
 import { Role } from "../../../../../types"
-import { GameMode } from "../../../../../types/enum/Game"
+import { isDoubleUpMode } from "../../../../../utils/game-mode"
 import { useAppSelector } from "../../../hooks"
 import { kick, removeBot, selectPartner } from "../../../network"
 import { RemoveButton } from "../buttons/remove-button"
@@ -38,7 +38,7 @@ export default function PreparationMenuUser(props: {
   const gameMode = useAppSelector((state) => state.preparation.gameMode)
   const users = useAppSelector((state) => state.preparation.users)
   const myUid = user?.uid
-  const isDoubleUp = gameMode === GameMode.DOUBLE_UP
+  const isDoubleUp = isDoubleUpMode(gameMode)
   const isMe = props.user.uid === myUid
   const myPartner = users.find((u) => u.uid === myUid)?.doubleUpPartnerId
   const isPaired = myPartner === props.user.uid

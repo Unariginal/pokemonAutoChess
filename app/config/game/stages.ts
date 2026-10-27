@@ -13,6 +13,8 @@ export const StageDuration: Record<number | "DEFAULT", number> = {
   20: 50,
   DEFAULT: 30
 }
+// extra seconds added to every pick phase so players have more time to plan
+export const PICK_PHASE_BONUS_DURATION = 10
 export const FIGHTING_PHASE_DURATION = 45000
 export const ITEM_CAROUSEL_BASE_DURATION = 16000
 export const PORTAL_CAROUSEL_BASE_DURATION = 23000

@@ -6,6 +6,7 @@ import {
   getRegionTint,
   RegionDetails
 } from "../../../../config"
+import { MegaItemRecipe } from "../../../../config/game/megas"
 import type { DesignTiled } from "../../../../core/design"
 import { FLOWER_POTS_POSITIONS_BLUE } from "../../../../core/flower-pots"
 import { canSell } from "../../../../core/pokemon-entity"
@@ -776,7 +777,10 @@ export default class GameScene extends Scene {
           dropZone instanceof ItemContainer
         ) {
           // item dragged above another item: find the resulting item
-          for (const [key, value] of Object.entries(ItemRecipe)) {
+          for (const [key, value] of Object.entries({
+            ...ItemRecipe,
+            ...MegaItemRecipe
+          })) {
             if (
               (value[0] == gameObject.name && value[1] == dropZone.name) ||
               (value[0] == dropZone.name && value[1] == gameObject.name)

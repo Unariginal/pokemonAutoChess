@@ -38,6 +38,7 @@ export default class PreparationState
   @type(["string"]) blacklist: string[]
   abortOnPlayerLeave?: AbortController
   readyUpCooldown: Delayed | null
+  botFillCountdown: Delayed | null = null
 
   constructor(params: {
     ownerId?: string

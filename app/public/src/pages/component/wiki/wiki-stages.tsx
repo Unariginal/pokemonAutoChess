@@ -7,6 +7,11 @@ import {
   PortalCarouselStages,
   TownEncountersByStage
 } from "../../../../../config"
+import {
+  MEGA_MADNESS_KEY_STONE_PVE_STAGE,
+  MEGA_MADNESS_KEY_STONE_TOWN_CHANCE,
+  MegaMadnessKeyStoneTownStages
+} from "../../../../../config/game/megas"
 import { getAdditionalsTier1 } from "../../../../../models/precomputed/precomputed-pokemon-data"
 import { PRECOMPUTED_POKEMONS_PER_RARITY } from "../../../../../models/precomputed/precomputed-rarity"
 import { type PVEStage, PVEStages } from "../../../../../models/pve-stages"
@@ -15,9 +20,11 @@ import { GameMode } from "../../../../../types/enum/Game"
 import {
   CraftableItemsNoScarves,
   type Item,
-  ItemComponentsNoScarf
+  ItemComponentsNoScarf,
+  Item as ItemEnum
 } from "../../../../../types/enum/Item"
 import { Pkm, PkmIndex } from "../../../../../types/enum/Pokemon"
+import { TownEncounters } from "../../../../../types/enum/TownEncounter"
 import { getPortraitSrc } from "../../../../../utils/avatar"
 import { entries } from "../../../../../utils/object"
 import { ItemDetailTooltip } from "../../../game/components/item-detail"
@@ -31,6 +38,7 @@ import {
   GiftsTier2,
   GiftsTier3
 } from "../../../../../types/enum/GiftShop"
+import { isDoubleUpMode } from "../../../../../utils/game-mode"
 
 type StageInfo = {
   level: number
@@ -97,10 +105,7 @@ export default function WikiStages() {
       }
 
       // Double up Gift shop stages
-      if (
-        GiftShopStages.includes(level) &&
-        selectedGameMode === GameMode.DOUBLE_UP
-      ) {
+      if (GiftShopStages.includes(level) && isDoubleUpMode(selectedGameMode)) {
         stages.push({
           level,
           icon: "/assets/ui/gift.svg",
@@ -240,15 +245,45 @@ export default function WikiStages() {
       </div>
 
       {/* Stage Detail Display */}
-      {selectedStageInfo && <StageDetail stageInfo={selectedStageInfo} />}
+      {selectedStageInfo && (
+        <StageDetail
+          stageInfo={selectedStageInfo}
+          gameMode={selectedGameMode}
+        />
+      )}
     </div>
   )
 }
 
-function StageDetail({ stageInfo }: { stageInfo: StageInfo }) {
+function StageDetail({
+  stageInfo,
+  gameMode
+}: {
+  stageInfo: StageInfo
+  gameMode: GameMode
+}) {
   const { t } = useTranslation()
 
   if (!stageInfo) return null
+
+  const isMegaMadness = gameMode === GameMode.MEGA_MADNESS
+  const pveRewards = [
+    ...(stageInfo.stageData?.rewards ?? []),
+    ...(isMegaMadness && stageInfo.level === MEGA_MADNESS_KEY_STONE_PVE_STAGE
+      ? [ItemEnum.KEY_STONE]
+      : [])
+  ]
+  const townEncounters: [string, number][] = [
+    ...Object.entries(TownEncountersByStage[stageInfo.level] ?? {}),
+    ...(isMegaMadness && MegaMadnessKeyStoneTownStages.includes(stageInfo.level)
+      ? [
+          [TownEncounters.LUCARIO, MEGA_MADNESS_KEY_STONE_TOWN_CHANCE] as [
+            string,
+            number
+          ]
+        ]
+      : [])
+  ]
 
   const itemDetail = (item: Item) => (
     <img
@@ -348,11 +383,11 @@ function StageDetail({ stageInfo }: { stageInfo: StageInfo }) {
             </table>
           </div>
 
-          {stageInfo.stageData.rewards && (
+          {pveRewards.length > 0 && (
             <div className="stage-rewards">
               <h4>{t("wiki.stages.rewards")}</h4>
               <ul>
-                {stageInfo.stageData.rewards.map((item) => (
+                {pveRewards.map((item) => (
                   <li key={item}>{itemDetail(item)}</li>
                 ))}
               </ul>
@@ -409,16 +444,14 @@ function StageDetail({ stageInfo }: { stageInfo: StageInfo }) {
 
           <h4>{t("wiki.stages.town_encounters")}</h4>
           <div className="town-encounters">
-            {TownEncountersByStage[stageInfo.level] && (
+            {townEncounters.length > 0 && (
               <ul>
-                {Object.entries(TownEncountersByStage[stageInfo.level]).map(
-                  ([pkm, chance]) => (
-                    <li key={pkm} className="town-encounter">
-                      {pokemonDetail(pkm as Pkm)}
-                      <span>{(chance * 100).toFixed(1)}%</span>
-                    </li>
-                  )
-                )}
+                {townEncounters.map(([pkm, chance]) => (
+                  <li key={pkm} className="town-encounter">
+                    {pokemonDetail(pkm as Pkm)}
+                    <span>{(chance * 100).toFixed(1)}%</span>
+                  </li>
+                ))}
               </ul>
             )}
           </div>

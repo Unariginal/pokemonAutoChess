@@ -106,6 +106,7 @@ import {
 } from "../utils/board"
 import { isValidDate } from "../utils/date"
 import { formatMinMaxRanks, getRank } from "../utils/elo"
+import { isDoubleUpMode } from "../utils/game-mode"
 import { logger } from "../utils/logger"
 import { clamp, min } from "../utils/number"
 import { shuffleArray } from "../utils/random"
@@ -189,7 +190,7 @@ export default class GameRoom extends Room<{ state: GameState }> {
       this.autoDispose = false // prevent a tournament game to be removed before registering the brackets results
     }
 
-    if (gameMode === GameMode.DOUBLE_UP) {
+    if (isDoubleUpMode(gameMode)) {
       noElo = true
     }
 
@@ -893,8 +894,7 @@ export default class GameRoom extends Room<{ state: GameState }> {
     // we skip elo compute/game history if game is not finished
     // that is at least two players including one human are still alive
     if (playersAlive.length >= 2 && humansAlive.length >= 1) {
-      const humansAliveLimit =
-        this.state.gameMode === GameMode.DOUBLE_UP ? 2 : 1
+      const humansAliveLimit = isDoubleUpMode(this.state.gameMode) ? 2 : 1
       if (humansAlive.length > humansAliveLimit) {
         // this can happen if all players disconnect before the end
         // or if there's another technical issue
@@ -1116,7 +1116,7 @@ export default class GameRoom extends Room<{ state: GameState }> {
     }
 
     if (
-      this.state.gameMode === GameMode.DOUBLE_UP &&
+      isDoubleUpMode(this.state.gameMode) &&
       getCurrentGameEvent() === GameEvent.POKEPALS &&
       usr.eventData?.pal &&
       this.state.players.has(usr.eventData?.pal) &&
@@ -1503,14 +1503,14 @@ export default class GameRoom extends Room<{ state: GameState }> {
         }
       })
     }
-    if (this.state.gameMode === GameMode.DOUBLE_UP) {
+    if (isDoubleUpMode(this.state.gameMode)) {
       damage = Math.ceil(stageLevel / 2)
     }
     return damage
   }
 
   rankPlayers() {
-    if (this.state.gameMode === GameMode.DOUBLE_UP) {
+    if (isDoubleUpMode(this.state.gameMode)) {
       return this.rankPlayersDoubleUp()
     }
     const rankArray = new Array<{ id: string; life: number; level: number }>()

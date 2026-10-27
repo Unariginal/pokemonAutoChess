@@ -430,3 +430,63 @@
   width: 22px;
   height: 22px;
 }
+
+#wiki-mega-madness {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+#wiki-mega-madness .rules li {
+  list-style: disc;
+  margin-left: 1.5em;
+}
+
+#wiki-mega-madness .recipes,
+#wiki-mega-madness .megas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20em, 1fr));
+  gap: 0.5em;
+}
+
+#wiki-mega-madness .recipe {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  margin: 0;
+}
+
+#wiki-mega-madness img.item {
+  width: 40px;
+  height: 40px;
+}
+
+#wiki-mega-madness .mega {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+#wiki-mega-madness .mega header {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+#wiki-mega-madness .mega .portraits {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+}
+
+#wiki-mega-madness .mega .name {
+  display: flex;
+  flex-direction: column;
+  font-weight: bold;
+}
+
+#wiki-mega-madness .mega .forms {
+  margin: 0;
+  font-size: 0.9em;
+  opacity: 0.8;
+}

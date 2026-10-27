@@ -11,14 +11,11 @@ import {
 import { getWeatherConfig } from "../../../../../config/game/weathers"
 import { PVEStages } from "../../../../../models/pve-stages"
 import { Emotion } from "../../../../../types"
-import {
-  BattleResult,
-  GameMode,
-  GamePhaseState
-} from "../../../../../types/enum/Game"
+import { BattleResult, GamePhaseState } from "../../../../../types/enum/Game"
 import { type Pkm, PkmIndex } from "../../../../../types/enum/Pokemon"
 import { SynergyAssociatedToWeather } from "../../../../../types/enum/Weather"
 import { getAvatarSrc, getPortraitSrc } from "../../../../../utils/avatar"
+import { isDoubleUpMode } from "../../../../../utils/game-mode"
 import { min } from "../../../../../utils/number"
 import { selectSpectatedPlayer, useAppSelector } from "../../../hooks"
 import { addIconsToDescription } from "../../utils/descriptions"
@@ -253,7 +250,7 @@ export function StagePath() {
       }
     }
 
-    if (GiftShopStages.includes(level) && gameMode === GameMode.DOUBLE_UP) {
+    if (GiftShopStages.includes(level) && isDoubleUpMode(gameMode)) {
       path.push({
         level,
         icon: "/assets/ui/gift.svg",

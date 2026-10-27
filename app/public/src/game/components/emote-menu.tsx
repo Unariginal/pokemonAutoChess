@@ -6,13 +6,13 @@ import { getUnitScore } from "../../../../core/unit-score"
 import { getAvailableEmotions } from "../../../../models/precomputed/precomputed-emotions"
 import type { IPlayer } from "../../../../types"
 import { AvatarEmotions, Emotion } from "../../../../types/enum/Emotion"
-import { GameMode } from "../../../../types/enum/Game"
 import { Item, ItemComponents } from "../../../../types/enum/Item"
 import {
   type PlayerDialog,
   PlayerDialogs
 } from "../../../../types/enum/PlayerDialog"
 import { Pkm, PkmIndex } from "../../../../types/enum/Pokemon"
+import { isDoubleUpMode } from "../../../../utils/game-mode"
 import { logger } from "../../../../utils/logger"
 import { schemaValues } from "../../../../utils/schemas"
 import PokemonPortrait from "../../pages/component/pokemon-portrait"
@@ -73,7 +73,7 @@ export function EmoteMenuComponent(props: {
         )}
       </div>
 
-      {gameMode === GameMode.DOUBLE_UP && (
+      {isDoubleUpMode(gameMode) && (
         <div className="double-up-emotes">
           <ul className="pkm-emotes">
             {pkmEmotes.map((pkm) => (

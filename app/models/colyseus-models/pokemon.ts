@@ -12,6 +12,7 @@ import {
   RegionDetails
 } from "../../config"
 import { InimitableAbilities } from "../../config/game/abilities"
+import { MegaEvolutions, type MegaPkm, MegaPkms } from "../../config/game/megas"
 import { SynergyTiers } from "../../config/game/synergies"
 import { getAltFormForPlayer } from "../../core/alt-form-logic"
 import type Simulation from "../../core/simulation"
@@ -16887,6 +16888,37 @@ export class Zygarde100 extends Pokemon {
   skill = Ability.CORE_ENFORCER
 }
 
+export class Litleo extends Pokemon {
+  types = new SetSchema<Synergy>([Synergy.FIRE, Synergy.FIELD, Synergy.SOUND])
+  rarity = Rarity.UNCOMMON
+  stars = 1
+  evolution = Pkm.PYROAR
+  hp = 80
+  atk = 7
+  speed = 50
+  def = 4
+  speDef = 4
+  maxPP = 90
+  range = 1
+  skill = Ability.HYPER_VOICE
+  additional = true
+}
+
+export class Pyroar extends Pokemon {
+  types = new SetSchema<Synergy>([Synergy.FIRE, Synergy.FIELD, Synergy.SOUND])
+  rarity = Rarity.UNCOMMON
+  stars = 2
+  hp = 160
+  atk = 16
+  speed = 50
+  def = 7
+  speDef = 7
+  maxPP = 90
+  range = 1
+  skill = Ability.HYPER_VOICE
+  additional = true
+}
+
 export class Sizzlipede extends Pokemon {
   types = new SetSchema<Synergy>([Synergy.FIRE, Synergy.BUG])
   rarity = Rarity.UNCOMMON
@@ -20930,14 +20962,49 @@ export class SandyShocks extends Pokemon {
   skill = Ability.MAGNETIC_ABSORPTION
 }
 
-export const PokemonClasses: Record<
-  Pkm,
-  new (
-    name: Pkm,
-    shiny?: boolean,
-    emotion?: Emotion
-  ) => Pokemon
-> = {
+type PokemonClass = new (
+  name: Pkm,
+  shiny?: boolean,
+  emotion?: Emotion
+) => Pokemon
+
+// Mega evolutions keep the ability and passive of their template form, with boosted stats
+function createMegaClasses(
+  baseClasses: Record<Exclude<Pkm, MegaPkm>, PokemonClass>
+): Record<MegaPkm, PokemonClass> {
+  return Object.fromEntries(
+    MegaEvolutions.filter((megaEvolution) =>
+      isIn(MegaPkms, megaEvolution.mega)
+    ).map((megaEvolution) => {
+      const Template = baseClasses[
+        megaEvolution.template as Exclude<Pkm, MegaPkm>
+      ] as unknown as typeof Pokemon
+      const MegaClass = class extends Template {
+        constructor(name: Pkm, shiny?: boolean, emotion?: Emotion) {
+          super(name, shiny, emotion)
+          this.evolution = Pkm.DEFAULT
+          this.evolutions = []
+          this.evolutionRule = {
+            type: EvolutionRuleType.COUNT,
+            numberRequired: 3
+          }
+          this.additional = false
+          this.regional = false
+          this.hp = Math.round(this.hp * 1.25)
+          this.atk = Math.round(this.atk * 1.25)
+          this.def += 3
+          this.speDef += 3
+          this.speed += 5
+          megaEvolution.addTypes.forEach((type) => this.types.add(type))
+        }
+      }
+      Object.defineProperty(MegaClass, "name", { value: megaEvolution.mega })
+      return [megaEvolution.mega, MegaClass]
+    })
+  ) as unknown as Record<MegaPkm, PokemonClass>
+}
+
+const BasePokemonClasses: Record<Exclude<Pkm, MegaPkm>, PokemonClass> = {
   [Pkm.DEFAULT]: Pokemon,
   [Pkm.DITTO]: Ditto,
   [Pkm.BULBASAUR]: Bulbasaur,
@@ -21883,6 +21950,8 @@ export const PokemonClasses: Record<
   [Pkm.ZYGARDE_10]: Zygarde10,
   [Pkm.ZYGARDE_50]: Zygarde50,
   [Pkm.ZYGARDE_100]: Zygarde100,
+  [Pkm.LITLEO]: Litleo,
+  [Pkm.PYROAR]: Pyroar,
   [Pkm.SIZZLIPEDE]: Sizzlipede,
   [Pkm.CENTISKORCH]: Centiskorch,
   [Pkm.STUFFUL]: Stufful,
@@ -22138,6 +22207,11 @@ export const PokemonClasses: Record<
   [Pkm.ORICORIO_SENSU]: OricorioSensu,
   [Pkm.BOMBIRDIER]: Bombirdier,
   [Pkm.SANDY_SHOCKS]: SandyShocks
+}
+
+export const PokemonClasses: Record<Pkm, PokemonClass> = {
+  ...BasePokemonClasses,
+  ...createMegaClasses(BasePokemonClasses)
 }
 
 // declare all the classes in colyseus schema TypeRegistry
