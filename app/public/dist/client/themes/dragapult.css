@@ -1,0 +1,31 @@
+:root {
+  --color-bg-primary: #2d4656;
+  --color-bg-secondary: #3e6577;
+  --color-bg-tertiary: #1f2b3d;
+  --color-bg-accent: #c23a55;
+
+  --border-thick: 2px solid #16202e;
+  --border-thin: 1px solid #16202e;
+  --border-extra-thin: 1px solid #16202e;
+}
+
+.custom-bg {
+  background-image: url("/assets/theme/dragapult/custombg.jpg");
+  background-position: center;
+}
+
+.lobby h2 {
+  text-shadow: 0px 3px 6px black;
+}
+
+dialog {
+  box-shadow: 0 0 16px rgba(194, 58, 85, 0.35);
+}
+
+.react-tabs__tab {
+  backdrop-filter: blur(10px);
+}
+
+#boosters-page .actions .booster-count {
+  color: var(--color-fg-invert);
+}
