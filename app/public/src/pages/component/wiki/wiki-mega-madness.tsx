@@ -6,6 +6,7 @@ import {
   MEGA_MADNESS_SILK_SCARF_PVE_STAGE,
   MEGA_MADNESS_SILK_SCARVES_PER_CAROUSEL,
   MegaEvolutions,
+  MegaFormOverrides,
   MegaItemRecipe,
   MegaMadnessKeyStoneTownStages,
   MegaMadnessSilkScarfCarouselStages,
@@ -71,6 +72,9 @@ export default function WikiMegaMadness() {
               "rule_mega_evolve",
               "rule_held",
               "rule_stats",
+              "rule_forms",
+              "rule_shop",
+              "rule_special_sources",
               "rule_silk_scarf"
             ] as const
           ).map((rule) => (
@@ -134,6 +138,15 @@ export default function WikiMegaMadness() {
                   ) : (
                     <p className="recipe">{t("wiki.mega_madness.no_stone")}</p>
                   )}
+                  <p className="ability">
+                    {t(`ability.${getPokemonData(mega.mega).skill}`)}
+                    {MegaFormOverrides[mega.mega] &&
+                      ` · ${t("wiki.mega_madness.specialty", {
+                        profile: t(
+                          `wiki.mega_madness.profile_${MegaFormOverrides[mega.mega]!.profile}`
+                        )
+                      })}`}
+                  </p>
                   {mega.bases.length > 1 && (
                     <p className="forms">
                       {t("wiki.mega_madness.all_forms", {

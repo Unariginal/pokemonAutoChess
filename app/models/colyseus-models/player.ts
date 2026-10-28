@@ -34,6 +34,7 @@ import type { DungeonPMDO } from "../../types/enum/Dungeon"
 import { EnvironmentalEffects } from "../../types/enum/Effect"
 import {
   BattleResult,
+  GameMode,
   PokemonActionState,
   Rarity,
   Team
@@ -91,6 +92,7 @@ import {
 import { resetArraySchema, schemaValues } from "../../utils/schemas"
 import { Effects } from "../effects"
 import PokemonFactory, { getPokemonBaseline } from "../pokemon-factory"
+import { MegaMadnessRegionalPokemons } from "../precomputed/precomputed-mega-madness"
 import {
   getPokemonData,
   PRECOMPUTED_REGIONAL_MONS
@@ -208,6 +210,7 @@ export default class Player extends Schema implements IPlayer {
     ticketLevel: number
   }[] = []
   specialGameRule: SpecialGameRule | null = null // its easier to duplicate this here and in gamestate than passing gamestate everywhere we need it
+  gameMode: GameMode | null = null // same as specialGameRule
   shopsSinceLastUnownShop: number = 0
   regions: DungeonPMDO[] = []
   extraScarves: number = 0 // scarves obtained though other ways than normal synergy
@@ -240,6 +243,7 @@ export default class Player extends Schema implements IPlayer {
     this.role = role
     this.pokemonCustoms = new PokemonCustoms(pokemonCollection)
     this.specialGameRule = state.specialGameRule
+    this.gameMode = state.gameMode
     this.flowerPots = initFlowerPots(this)
     const avatarCustom = getPokemonCustomFromAvatar(avatar)
     const avatarInCollection = pokemonCollection.get(
@@ -892,6 +896,13 @@ export default class Player extends Schema implements IPlayer {
           state.shop.addRegionalPokemon(p, this)
         }
       })
+
+      if (state.gameMode === GameMode.MEGA_MADNESS) {
+        // pokemons that can mega evolve are in the shop whatever the region
+        MegaMadnessRegionalPokemons.filter(
+          (p) => !newRegionalPokemons.includes(p)
+        ).forEach((p) => state.shop.addRegionalPokemon(p, this))
+      }
 
       if (state.specialGameRule === SpecialGameRule.REGIONAL_SPECIALTIES) {
         if (previousMap) {

@@ -6,7 +6,7 @@ import {
   getRegionTint,
   RegionDetails
 } from "../../../../config"
-import { MegaItemRecipe } from "../../../../config/game/megas"
+import { MegaItemRecipe, MegaStones } from "../../../../config/game/megas"
 import type { DesignTiled } from "../../../../core/design"
 import { FLOWER_POTS_POSITIONS_BLUE } from "../../../../core/flower-pots"
 import { canSell } from "../../../../core/pokemon-entity"
@@ -823,7 +823,7 @@ export default class GameScene extends Scene {
         if (
           gameObject instanceof ItemContainer &&
           dropZone.name === "flower-pot-zone" &&
-          isIn(Mulches, gameObject.name)
+          (isIn(Mulches, gameObject.name) || isIn(MegaStones, gameObject.name))
         ) {
           const flowerMonSprite =
             this.board?.flowerPokemonsInPots[dropZone.getData("index")]
@@ -911,7 +911,7 @@ export default class GameScene extends Scene {
         if (
           dropZone.name === "flower-pot-zone" &&
           gameObject instanceof ItemContainer &&
-          isIn(Mulches, gameObject.name)
+          (isIn(Mulches, gameObject.name) || isIn(MegaStones, gameObject.name))
         ) {
           const flowerPot =
             this.board?.flowerPokemonsInPots[dropZone.getData("index")]
@@ -923,7 +923,7 @@ export default class GameScene extends Scene {
         if (
           dropZone.name === "berry-tree-zone" &&
           gameObject instanceof ItemContainer &&
-          isIn(Mulches, gameObject.name)
+          (isIn(Mulches, gameObject.name) || isIn(MegaStones, gameObject.name))
         ) {
           const berryTree = this.board?.berryTrees[dropZone.getData("index")]
           if (berryTree) {

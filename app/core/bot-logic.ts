@@ -1,4 +1,5 @@
 import { AdditionalPicksStages, PortalCarouselStages } from "../config"
+import { MegaPkms } from "../config/game/megas"
 import {
   computeSynergies,
   getSynergyTier
@@ -141,7 +142,8 @@ export function getCategory(pkm: Pkm): string {
       Pkm.SHAYMIN_SKY,
       Pkm.ULTRA_NECROZMA,
       Pkm.ZACIAN_CROWNED
-    ].includes(pkm)
+    ].includes(pkm) ||
+    isIn(MegaPkms, pkm) // megas have 4 stars only to get the max tier of their ability
   ) {
     stars = 3 // these evos are typically free/do not cost more gold, so should not be increasing the board power
   }

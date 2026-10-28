@@ -9,15 +9,17 @@ import {
   DEFAULT_CRIT_CHANCE,
   DEFAULT_CRIT_POWER,
   DEFAULT_SPEED,
+  getBaseAltForm,
   RegionDetails
 } from "../../config"
 import { InimitableAbilities } from "../../config/game/abilities"
 import {
+  getMegaStatBoost,
   MEGA_STARS,
   MegaEvolutions,
+  MegaFormOverrides,
   type MegaPkm,
-  MegaPkms,
-  MegaStatBoosts
+  MegaPkms
 } from "../../config/game/megas"
 import { SynergyTiers } from "../../config/game/synergies"
 import { getAltFormForPlayer } from "../../core/alt-form-logic"
@@ -44,7 +46,12 @@ import {
 import { Ability } from "../../types/enum/Ability"
 import { DungeonPMDO } from "../../types/enum/Dungeon"
 import { EffectEnum } from "../../types/enum/Effect"
-import { PokemonActionState, Rarity, Stat } from "../../types/enum/Game"
+import {
+  GameMode,
+  PokemonActionState,
+  Rarity,
+  Stat
+} from "../../types/enum/Game"
 import {
   CraftableItems,
   Flavors,
@@ -72,6 +79,7 @@ import { isIn, removeInArray } from "../../utils/array"
 import { getFirstAvailablePositionInBench, isOnBench } from "../../utils/board"
 import { distanceC } from "../../utils/distance"
 import { clamp, min } from "../../utils/number"
+import { pickRandomIn } from "../../utils/random"
 import { schemaValues } from "../../utils/schemas"
 import type Player from "./player"
 import { getPkmWithCustom } from "./pokemon-customs"
@@ -20401,6 +20409,36 @@ export class Dondozo extends Pokemon {
   maxPP = 100
   range = 1
   skill = Ability.ORDER_UP
+  onAcquired(player: Player) {
+    // Mega Madness: Dondozo comes with a Tatsugiri if free space on bench, as it is the only way to get one
+    if (player.gameMode !== GameMode.MEGA_MADNESS) return
+    const ownsTatsugiri = schemaValues(player.board).some(
+      (p) =>
+        getBaseAltForm(p.name) === Pkm.TATSUGIRI_CURLY ||
+        p.name === Pkm.MEGA_TATSUGIRI
+    )
+    const x = getFirstAvailablePositionInBench(player.board)
+    if (ownsTatsugiri || x === null) return
+    const tatsugiri = pickRandomIn([
+      Pkm.TATSUGIRI_CURLY,
+      Pkm.TATSUGIRI_DROOPY,
+      Pkm.TATSUGIRI_STRETCHY
+    ])
+    const pkmWithCustom = getPkmWithCustom(
+      PkmIndex[tatsugiri],
+      player.pokemonCustoms
+    )
+    const pokemon = new PokemonClasses[tatsugiri](
+      tatsugiri,
+      pkmWithCustom.shiny ?? false,
+      pkmWithCustom.emotion ?? Emotion.NORMAL
+    )
+    pokemon.postConstructor()
+    pokemon.positionX = x
+    pokemon.positionY = 0
+    player.board.set(pokemon.id, pokemon)
+    player.pokemonsPlayed.add(tatsugiri)
+  }
 }
 
 export class TatsugiriCurly extends Pokemon {
@@ -20997,14 +21035,17 @@ function createMegaClasses(
           this.additional = false
           this.regional = false
           this.stars = MEGA_STARS // max tier of ability values
-          this.hp = Math.round(this.hp * (1 + MegaStatBoosts.hpPercent / 100))
-          this.atk = Math.round(
-            this.atk * (1 + MegaStatBoosts.atkPercent / 100)
-          )
-          this.def += MegaStatBoosts.def
-          this.speDef += MegaStatBoosts.speDef
-          this.speed += MegaStatBoosts.speed
-          this.ap += MegaStatBoosts.ap
+          this.canHoldItems = true // must keep holding its mega stone
+          const boost = getMegaStatBoost(megaEvolution.mega)
+          this.hp = Math.round(this.hp * (1 + boost.hpPercent / 100))
+          this.atk = Math.round(this.atk * (1 + boost.atkPercent / 100))
+          this.def += boost.def
+          this.speDef += boost.speDef
+          this.speed += boost.speed
+          this.ap += boost.ap
+          const override = MegaFormOverrides[megaEvolution.mega]
+          if (override?.skill) this.skill = override.skill
+          if (override?.range) this.range = override.range
           megaEvolution.addTypes.forEach((type) => this.types.add(type))
         }
       }

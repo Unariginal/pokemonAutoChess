@@ -24,6 +24,7 @@ import PlayerBox from "./player-box"
 import { ProfileChatHistory } from "./profile-chat-history"
 import { ProgressTab } from "./progress-tab"
 import { TitleTab } from "./title-tab"
+import { UserStatsEditor } from "./user-stats-editor"
 import "./profile.css"
 
 export default function Profile() {
@@ -52,10 +53,13 @@ export default function Profile() {
 
       <div className="profile-actions">
         {searchedUser ? (
-          <OtherProfileActions
-            rightPanel={rightPanel}
-            setRightPanel={setRightPanel}
-          />
+          <>
+            <OtherProfileActions
+              rightPanel={rightPanel}
+              setRightPanel={setRightPanel}
+            />
+            <UserStatsEditor user={searchedUser} />
+          </>
         ) : (
           <MyProfileMenu />
         )}

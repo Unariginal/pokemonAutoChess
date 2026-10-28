@@ -1,10 +1,14 @@
 import assert from "node:assert/strict"
 import test from "node:test"
+import { getBaseAltForm } from "../../config"
 import {
+  getMegaEvolution,
+  getMegaStatBoost,
   MEGA_MADNESS_SILK_SCARVES_PER_CAROUSEL,
   MEGA_STARS,
   MegaCraftingItems,
   MegaEvolutions,
+  MegaFormOverrides,
   MegaItemRecipe,
   MegaMadnessKeyStoneTownStages,
   MegaMadnessSilkScarfCarouselStages,
@@ -16,21 +20,27 @@ import {
 import Player from "../../models/colyseus-models/player"
 import { PokemonClasses } from "../../models/colyseus-models/pokemon"
 import PokemonFactory from "../../models/pokemon-factory"
+import {
+  MegaMadnessAdditionalPokemons,
+  MegaMadnessRegionalPokemons
+} from "../../models/precomputed/precomputed-mega-madness"
 import { getPokemonData } from "../../models/precomputed/precomputed-pokemon-data"
 import { getSellPrice } from "../../models/shop"
 import type GameRoom from "../../rooms/game-room"
 import GameState from "../../rooms/states/game-state"
 import { Role } from "../../types"
 import { Ability } from "../../types/enum/Ability"
+import { DungeonPMDO } from "../../types/enum/Dungeon"
 import { GameMode } from "../../types/enum/Game"
 import { Item, ItemComponents, ItemRecipe } from "../../types/enum/Item"
 import { Pkm, PkmIndex } from "../../types/enum/Pokemon"
 import { TownEncounters } from "../../types/enum/TownEncounter"
+import { FlowerMonByPot } from "../flower-pots"
 import { MiniGame } from "../mini-game"
 import { tryMegaEvolve } from "./mega-evolution"
 
-function createPlayer() {
-  const state = new GameState(
+function createPlayer(
+  state = new GameState(
     "prep",
     "test",
     true,
@@ -39,6 +49,7 @@ function createPlayer() {
     null,
     null
   )
+) {
   return new Player(
     "player",
     "Player",
@@ -196,8 +207,8 @@ test("Mega Madness carousels of some stages may offer Silk Scarves", () => {
 })
 
 test("megas get the mega stat boosts over their template", () => {
-  const template = PokemonFactory.createPokemonFromName(Pkm.CHARIZARD)
-  const mega = PokemonFactory.createPokemonFromName(Pkm.MEGA_CHARIZARD_X)
+  const template = PokemonFactory.createPokemonFromName(Pkm.BLASTOISE)
+  const mega = PokemonFactory.createPokemonFromName(Pkm.MEGA_BLASTOISE)
   assert.equal(
     mega.hp,
     Math.round(template.hp * (1 + MegaStatBoosts.hpPercent / 100))
@@ -212,6 +223,35 @@ test("megas get the mega stat boosts over their template", () => {
   assert.equal(mega.ap, template.ap + MegaStatBoosts.ap)
 })
 
+test("megas sharing a base pokemon differ by more than their synergies", () => {
+  const megasByBase = new Map<Pkm, Pkm[]>()
+  for (const mega of MegaEvolutions) {
+    const base = mega.bases[0]
+    megasByBase.set(base, [...(megasByBase.get(base) ?? []), mega.mega])
+  }
+  for (const megas of megasByBase.values()) {
+    if (megas.length < 2) continue
+    const profiles = megas.map((pkm) => {
+      const mega = PokemonFactory.createPokemonFromName(pkm)
+      return [mega.skill, mega.range, mega.hp, mega.atk, mega.ap].join("/")
+    })
+    assert.equal(new Set(profiles).size, megas.length, megas.join(", "))
+    for (const pkm of megas) {
+      const mega = PokemonFactory.createPokemonFromName(pkm)
+      const boost = getMegaStatBoost(pkm)
+      const template = PokemonFactory.createPokemonFromName(
+        MegaTemplateByPkm[pkm]!
+      )
+      assert.equal(
+        mega.atk,
+        Math.round(template.atk * (1 + boost.atkPercent / 100)),
+        pkm
+      )
+      assert.equal(mega.skill, MegaFormOverrides[pkm]?.skill ?? template.skill)
+    }
+  }
+})
+
 test("megas use their max ability tier but sell like their template", () => {
   for (const pkm of MegaPkms) {
     const mega = PokemonFactory.createPokemonFromName(pkm)
@@ -220,6 +260,39 @@ test("megas use their max ability tier but sell like their template", () => {
       MegaTemplateByPkm[pkm]!
     )
     assert.equal(getSellPrice(mega), getSellPrice(template), pkm)
+  }
+})
+
+test("Mega Madness shops have every regional pokemon that can mega evolve", () => {
+  assert.ok(MegaMadnessRegionalPokemons.includes(Pkm.BAGON))
+  assert.ok(MegaMadnessAdditionalPokemons.includes(Pkm.RIOLU))
+  for (const gameMode of [GameMode.MEGA_MADNESS, GameMode.CLASSIC]) {
+    for (const map of Object.values(DungeonPMDO).slice(0, 10)) {
+      const state = new GameState(
+        "prep",
+        "test",
+        true,
+        gameMode,
+        null,
+        null,
+        null
+      )
+      const player = createPlayer(state)
+      player.map = map
+      player.updateRegionalPool(state, true)
+      for (const pkm of MegaMadnessRegionalPokemons) {
+        const pool = state.shop.getRegionalPool(
+          getPokemonData(pkm).rarity,
+          player
+        )
+        const inRegion = new PokemonClasses[pkm](pkm).isInRegion(map, state)
+        assert.equal(
+          pool?.includes(pkm),
+          gameMode === GameMode.MEGA_MADNESS || inRegion,
+          `${gameMode} ${map} ${pkm}`
+        )
+      }
+    }
   }
 })
 
@@ -233,5 +306,46 @@ test("pokemons with several forms can all mega evolve", () => {
       tryMegaEvolve(meowstic, player, Item.MEOWSTICITE)?.name,
       Pkm.MEGA_MEOWSTIC
     )
+  }
+})
+
+test("Dondozo brings a Tatsugiri once in Mega Madness only", () => {
+  for (const gameMode of [GameMode.MEGA_MADNESS, GameMode.CLASSIC]) {
+    const player = createPlayer(
+      new GameState("prep", "test", true, gameMode, null, null, null)
+    )
+    const countTatsugiris = () =>
+      [...player.board.values()].filter(
+        (p) => getBaseAltForm(p.name) === Pkm.TATSUGIRI_CURLY
+      ).length
+    for (let i = 0; i < 2; i++) {
+      const dondozo = PokemonFactory.createPokemonFromName(Pkm.DONDOZO)
+      dondozo.positionX = i
+      player.board.set(dondozo.id, dondozo)
+      dondozo.onAcquired(player)
+    }
+    assert.equal(countTatsugiris(), gameMode === GameMode.MEGA_MADNESS ? 1 : 0)
+  }
+})
+
+test("Tatsugiri can mega evolve and its mega keeps the stone", () => {
+  const player = createPlayer()
+  const tatsugiri = PokemonFactory.createPokemonFromName(Pkm.TATSUGIRI_DROOPY)
+  player.board.set(tatsugiri.id, tatsugiri)
+  player.items.push(Item.TATSUGIRINITE)
+  const mega = tryMegaEvolve(tatsugiri, player, Item.TATSUGIRINITE)
+  assert.equal(mega?.name, Pkm.MEGA_TATSUGIRI)
+  assert.equal(mega?.items.has(Item.TATSUGIRINITE), true)
+})
+
+test("Victreebel and Meganium mega evolve in their flower pot", () => {
+  for (const [stone, pkm] of [
+    [Item.VICTREEBELITE, Pkm.VICTREEBEL],
+    [Item.MEGANIUMITE, Pkm.MEGANIUM]
+  ] as const) {
+    const megaEvolution = getMegaEvolution(pkm, stone)
+    assert.ok(megaEvolution, pkm)
+    const line = Object.values(FlowerMonByPot).find((l) => l.includes(pkm))
+    assert.deepEqual(line?.slice(-2), [pkm, megaEvolution.mega])
   }
 })

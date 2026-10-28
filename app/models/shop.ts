@@ -46,7 +46,7 @@ import { pickFirstPartners } from "../core/scribbles"
 import type GameState from "../rooms/states/game-state"
 import type { IPokemon, IPokemonEntity } from "../types"
 import { EffectEnum } from "../types/enum/Effect"
-import { Rarity } from "../types/enum/Game"
+import { GameMode, Rarity } from "../types/enum/Game"
 import {
   type FishingRod,
   Item,
@@ -82,6 +82,7 @@ import {
 import { type Pokemon, PokemonClasses } from "./colyseus-models/pokemon"
 import { getWildChance } from "./colyseus-models/synergies"
 import { getPokemonBaseline } from "./pokemon-factory"
+import { MegaMadnessRegionalPokemons } from "./precomputed/precomputed-mega-madness"
 import {
   getPokemonData,
   getRegularsTier1
@@ -320,8 +321,12 @@ export default class Shop {
       entityNumber = Math.ceil(entityNumber / 2)
     }
 
+    const isMegaMadnessRegional =
+      state.gameMode === GameMode.MEGA_MADNESS &&
+      MegaMadnessRegionalPokemons.includes(baseline)
     if (
       regional &&
+      !isMegaMadnessRegional &&
       new PokemonClasses[pkm](pkm).isInRegion(player.map, state) === false
     ) {
       return // regional pokemons sold in a region other than their original region are not added back to the pool

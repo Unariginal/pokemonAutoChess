@@ -1,0 +1,72 @@
+#root .game-debug-panel {
+  left: 1vw;
+  bottom: 1vw;
+  color: var(--color-fg-primary);
+  z-index: 100;
+}
+
+.game-debug-panel.maximized {
+  width: 340px;
+}
+
+.game-debug-panel .draggable-window-content {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.game-debug-panel-content section {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  margin-bottom: 0.4em;
+}
+
+.game-debug-panel-content label {
+  min-width: 4em;
+}
+
+.game-debug-panel-content input[type="number"] {
+  width: 4.5em;
+}
+
+.game-debug-panel-content input[type="search"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.game-debug-panel-content button {
+  padding: 0.2em 0.5em;
+}
+
+.game-debug-panel-content h3 {
+  font-size: 1em;
+  margin: 0.5em 0 0.25em;
+}
+
+.game-debug-panel-list {
+  list-style: none;
+  margin: 0 0 0.4em;
+  padding: 0;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.game-debug-panel-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 1px 4px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.game-debug-panel-list li:hover,
+.game-debug-panel-list li.selected {
+  background-color: var(--color-bg-secondary);
+}
+
+.game-debug-panel-list img {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+}

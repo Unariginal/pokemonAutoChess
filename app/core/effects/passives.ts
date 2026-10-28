@@ -79,7 +79,9 @@ import { FalinksFormationEffect } from "./passives/falinks-formation"
 
 export function drumBeat(pokemon: PokemonEntity, board: Board) {
   const speedFactor = 1 - StatusConfigs.PARALYSIS.speedReductionPercent / 100
-  const speed = pokemon.status.paralysis ? pokemon.speed * speedFactor : pokemon.speed
+  const speed = pokemon.status.paralysis
+    ? pokemon.speed * speedFactor
+    : pokemon.speed
   pokemon.resetCooldown(1000, speed) // use attack state cooldown
   if (pokemon.pp >= pokemon.maxPP && pokemon.canCast) {
     // CAST ABILITY
@@ -857,7 +859,8 @@ const commanderPassive = new OnSimulationStartEffect(
           [
             Item.TATSUGIRI_CURLY,
             Item.TATSUGIRI_DROOPY,
-            Item.TATSUGIRI_STRETCHY
+            Item.TATSUGIRI_STRETCHY,
+            Item.TATSUGIRINITE
           ].every((commander) => p.items.has(commander) === false)
       )
 
@@ -882,6 +885,14 @@ const commanderPassive = new OnSimulationStartEffect(
         dondozo.addItem(Item.TATSUGIRI_DROOPY)
       } else if (entity.name === Pkm.TATSUGIRI_STRETCHY) {
         dondozo.addItem(Item.TATSUGIRI_STRETCHY)
+      } else if (entity.name === Pkm.MEGA_TATSUGIRI) {
+        // Mega Tatsugiri brings its Mega Stone, combining the bonuses of every form
+        dondozo.addItem(Item.TATSUGIRINITE)
+        dondozo.addMaxHP(150, dondozo, 0, false)
+        dondozo.addAttack(10, dondozo, 0, false)
+        dondozo.addDefense(10, dondozo, 0, false)
+        dondozo.addSpeed(25, dondozo, 0, false)
+        dondozo.addAbilityPower(30, dondozo, 0, false)
       }
     }
   },

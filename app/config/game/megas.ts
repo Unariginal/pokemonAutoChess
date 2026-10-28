@@ -1,3 +1,4 @@
+import { Ability } from "../../types/enum/Ability"
 import { Item } from "../../types/enum/Item"
 import { Pkm } from "../../types/enum/Pokemon"
 import { Synergy } from "../../types/enum/Synergy"
@@ -1108,6 +1109,90 @@ export const MegaStatBoosts = {
   speDef: 5,
   speed: 10,
   ap: 25
+}
+
+export type MegaStatBoost = typeof MegaStatBoosts
+
+// alternative stat boosts used to set apart megas that share the same base pokemon
+export const MegaStatProfiles = {
+  physical: {
+    hpPercent: 50,
+    atkPercent: 80,
+    def: 10,
+    speDef: 0,
+    speed: 10,
+    ap: 10
+  },
+  special: {
+    hpPercent: 35,
+    atkPercent: 30,
+    def: 0,
+    speDef: 10,
+    speed: 10,
+    ap: 70
+  },
+  swift: {
+    hpPercent: 35,
+    atkPercent: 60,
+    def: 0,
+    speDef: 0,
+    speed: 25,
+    ap: 25
+  },
+  bulky: {
+    hpPercent: 80,
+    atkPercent: 40,
+    def: 15,
+    speDef: 15,
+    speed: 0,
+    ap: 25
+  }
+} satisfies Record<string, MegaStatBoost>
+
+export type MegaStatProfile = keyof typeof MegaStatProfiles
+
+export type MegaFormOverride = {
+  profile: MegaStatProfile
+  // replaces the ability of the template pokemon
+  skill?: Ability
+  range?: number
+}
+
+// megas with several forms (X/Y/Z) get a different ability or stat profile for each form
+export const MegaFormOverrides: { [key in Pkm]?: MegaFormOverride } = {
+  [Pkm.MEGA_CHARIZARD_X]: { profile: "physical", skill: Ability.OUTRAGE },
+  [Pkm.MEGA_CHARIZARD_Y]: {
+    profile: "special",
+    skill: Ability.FIRE_BLAST,
+    range: 3
+  },
+  [Pkm.MEGA_MEWTWO_X]: {
+    profile: "physical",
+    skill: Ability.CLOSE_COMBAT,
+    range: 1
+  },
+  [Pkm.MEGA_MEWTWO_Y]: { profile: "special" },
+  [Pkm.MEGA_RAICHU_X]: { profile: "swift", skill: Ability.VOLT_SWITCH },
+  [Pkm.MEGA_RAICHU_Y]: {
+    profile: "special",
+    skill: Ability.ZAP_CANNON,
+    range: 3
+  },
+  [Pkm.MEGA_ABSOL]: { profile: "physical" },
+  [Pkm.MEGA_ABSOL_Z]: { profile: "swift", skill: Ability.SPECTRAL_THIEF },
+  [Pkm.MEGA_GARCHOMP]: { profile: "bulky" },
+  [Pkm.MEGA_GARCHOMP_Z]: { profile: "swift", skill: Ability.SCALE_SHOT },
+  [Pkm.MEGA_LUCARIO]: { profile: "special" },
+  [Pkm.MEGA_LUCARIO_Z]: {
+    profile: "physical",
+    skill: Ability.METEOR_MASH,
+    range: 1
+  }
+}
+
+export function getMegaStatBoost(mega: Pkm): MegaStatBoost {
+  const override = MegaFormOverrides[mega]
+  return override ? MegaStatProfiles[override.profile] : MegaStatBoosts
 }
 
 // many Mega Stones need a Silk Scarf: some carousels may offer extra ones, and a PvE fight always rewards one

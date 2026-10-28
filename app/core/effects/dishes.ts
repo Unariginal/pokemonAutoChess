@@ -392,9 +392,17 @@ export const DishEffects: Record<(typeof Dishes)[number], Effect[]> = {
       entity?.effects.add(EffectEnum.RICE)
       if (!player) return
       const tatsugiriOnBoard = schemaValues(player.board).find(
-        (e) => e && getBaseAltForm(e.name) === Pkm.TATSUGIRI_CURLY
+        (e) =>
+          e &&
+          (getBaseAltForm(e.name) === Pkm.TATSUGIRI_CURLY ||
+            e.name === Pkm.MEGA_TATSUGIRI)
       )
-      if (tatsugiriOnBoard?.name === Pkm.TATSUGIRI_CURLY) {
+      if (tatsugiriOnBoard?.name === Pkm.MEGA_TATSUGIRI) {
+        // Mega Tatsugiri: bonuses of every form
+        entity?.addAttack(8, entity, 0, false)
+        entity?.addDefense(8, entity, 0, false)
+        entity?.addSpeed(25, entity, 0, false)
+      } else if (tatsugiriOnBoard?.name === Pkm.TATSUGIRI_CURLY) {
         entity?.addAttack(8, entity, 0, false)
       } else if (tatsugiriOnBoard?.name === Pkm.TATSUGIRI_DROOPY) {
         entity?.addDefense(8, entity, 0, false)

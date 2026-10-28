@@ -10,6 +10,7 @@ import type PreparationState from "../../rooms/states/preparation-state"
 import { type Emotion, type Role, type Title, Transfer } from "../../types"
 import type { Booster } from "../../types/Booster"
 import { CloseCodes } from "../../types/enum/CloseCodes"
+import type { UserStatChanges } from "../../types/enum/DebugAction"
 import type { EloRank } from "../../types/enum/EloRank"
 import type { BotDifficulty } from "../../types/enum/Game"
 import type { MaintenanceOrder } from "../../types/enum/MaintenanceOrder"
@@ -400,6 +401,16 @@ export function showEmote(emote?: string) {
 export async function searchById(uid: string) {
   const user = await rooms.lobby?.request("search-by-id", uid)
   if (user) store.dispatch(setSearchedUser(user))
+}
+
+export async function canUseDebugTools(): Promise<boolean> {
+  return (await rooms.lobby?.request("debug-tools-access")) === true
+}
+
+export async function setUserStats(uid: string, stats: UserStatChanges) {
+  const result = await rooms.lobby?.request("set-user-stats", { uid, stats })
+  if (result?.user) store.dispatch(setSearchedUser(result.user))
+  return result as { user?: unknown; error?: string } | undefined
 }
 
 export function deleteTournament(params: { id: string }) {

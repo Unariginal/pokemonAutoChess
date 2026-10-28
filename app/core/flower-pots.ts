@@ -21,8 +21,19 @@ export const FLOWER_POTS_POSITIONS_RED = [
 
 export const FlowerMonByPot: Record<FlowerPot, Pkm[]> = {
   [FlowerPot.PINK]: [Pkm.HOPPIP, Pkm.SKIPLOOM, Pkm.JUMPLUFF],
-  [FlowerPot.YELLOW]: [Pkm.BELLSPROUT, Pkm.WEEPINBELL, Pkm.VICTREEBEL],
-  [FlowerPot.WHITE]: [Pkm.CHIKORITA, Pkm.BAYLEEF, Pkm.MEGANIUM],
+  // in Mega Madness, a Mega Stone given to a fully grown flower makes it mega evolve in its pot
+  [FlowerPot.YELLOW]: [
+    Pkm.BELLSPROUT,
+    Pkm.WEEPINBELL,
+    Pkm.VICTREEBEL,
+    Pkm.MEGA_VICTREEBEL
+  ],
+  [FlowerPot.WHITE]: [
+    Pkm.CHIKORITA,
+    Pkm.BAYLEEF,
+    Pkm.MEGANIUM,
+    Pkm.MEGA_MEGANIUM
+  ],
   [FlowerPot.BLUE]: [Pkm.ODDISH, Pkm.GLOOM, Pkm.VILEPLUME],
   [FlowerPot.ORANGE]: [Pkm.BELLOSSOM]
 }

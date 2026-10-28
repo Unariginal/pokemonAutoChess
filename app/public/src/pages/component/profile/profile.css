@@ -267,3 +267,35 @@ ul.titles > li.selected .title-name {
 .profile-modal .twitch-badge-link:focus {
   color: #772ce8;
 }
+
+.profile-modal .user-stats-editor {
+  width: 100%;
+  margin-top: 0.5em;
+}
+
+.profile-modal .user-stats-editor h3 {
+  margin: 0 0 0.5em;
+}
+
+.profile-modal .user-stats-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.25em 1em;
+}
+
+.profile-modal .user-stats-editor-grid label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.profile-modal .user-stats-editor-grid input {
+  width: 7em;
+}
+
+.profile-modal .user-stats-editor-actions {
+  display: flex;
+  gap: 0.5em;
+  margin-top: 0.5em;
+}

@@ -25,6 +25,7 @@ import {
   UNOWN_ENCOUNTER_CHANCE
 } from "../../config"
 import {
+  getMegaEvolution,
   MEGA_MADNESS_KEY_STONE_PVE_STAGE,
   MEGA_MADNESS_SILK_SCARF_PVE_STAGE,
   MegaCraftingItems,
@@ -733,6 +734,23 @@ export class OnDragDropItemCommand extends Command<
         return
       }
       pokemon = player.flowerPots[index]
+      const megaEvolution =
+        pokemon && isIn(MegaStones, item)
+          ? getMegaEvolution(pokemon.name, item)
+          : undefined
+      if (pokemon && megaEvolution) {
+        // Mega Madness: the mega stone acts as a final mulch, the fully grown flower mega evolves in its pot
+        const potMega = PokemonFactory.createPokemonFromName(
+          megaEvolution.mega,
+          player
+        )
+        potMega.items.add(item)
+        potMega.action = PokemonActionState.SLEEP
+        player.flowerPots[index] = potMega
+        removeInArray(player.items, item)
+        client.send(Transfer.DRAG_DROP_CANCEL, message)
+        return
+      }
       if (!pokemon || isIn(Mulches, item) === false) {
         client.send(Transfer.DRAG_DROP_CANCEL, message)
         return

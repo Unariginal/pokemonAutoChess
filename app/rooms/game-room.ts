@@ -17,6 +17,7 @@ import {
   VictoryRoadPointsPerRank
 } from "../config"
 import { GADGETS } from "../config/game/gadgets"
+import { canUseDebugTools, executeDebugAction } from "../core/debug-tools"
 import { unequipItems } from "../core/effects/items"
 import { computeElo } from "../core/elo"
 import { EvolutionManager } from "../core/evolution-logic/evolution-manager"
@@ -42,6 +43,7 @@ import UserMetadata, {
   toPlayerCollection
 } from "../models/mongo-models/user-metadata"
 import PokemonFactory from "../models/pokemon-factory"
+import { MegaMadnessAdditionalPokemons } from "../models/precomputed/precomputed-mega-madness"
 import {
   getAdditionalsTier1,
   getPokemonData,
@@ -71,6 +73,7 @@ import {
 } from "../types"
 import { EvolutionRuleType } from "../types/EvolutionRules"
 import { CloseCodes } from "../types/enum/CloseCodes"
+import type { DebugMessage } from "../types/enum/DebugAction"
 import type { EloRank } from "../types/enum/EloRank"
 import { GameMode, PokemonActionState, Rarity } from "../types/enum/Game"
 import {
@@ -277,6 +280,19 @@ export default class GameRoom extends Room<{ state: GameState }> {
         }
         return true
       })
+    }
+
+    if (this.state.gameMode === GameMode.MEGA_MADNESS) {
+      // pokemons that can mega evolve are in the shop from the start instead of being additional picks
+      MegaMadnessAdditionalPokemons.forEach((p) =>
+        this.state.shop.addAdditionalPokemon(p, this.state)
+      )
+      const isNotMegaBase = (p: Pkm) =>
+        !MegaMadnessAdditionalPokemons.includes(p)
+      this.additionalUncommonPool =
+        this.additionalUncommonPool.filter(isNotMegaBase)
+      this.additionalRarePool = this.additionalRarePool.filter(isNotMegaBase)
+      this.additionalEpicPool = this.additionalEpicPool.filter(isNotMegaBase)
     }
 
     shuffleArray(this.additionalUncommonPool)
@@ -688,6 +704,41 @@ export default class GameRoom extends Room<{ state: GameState }> {
         } catch (error) {
           logger.error("dev command error", message)
         }
+      }
+    })
+
+    this.onMessage(Transfer.DEBUG_TOOLS_ACCESS, (client) => {
+      const player = client.auth && this.state.players.get(client.auth.uid)
+      client.send(
+        Transfer.DEBUG_TOOLS_ACCESS,
+        !!player &&
+          canUseDebugTools({
+            uid: client.auth.uid,
+            email: client.auth.email,
+            role: player.role
+          })
+      )
+    })
+
+    this.onMessage(Transfer.DEBUG_COMMAND, (client, message: DebugMessage) => {
+      const player = client.auth && this.state.players.get(client.auth.uid)
+      if (
+        !player ||
+        !canUseDebugTools({
+          uid: client.auth.uid,
+          email: client.auth.email,
+          role: player.role
+        })
+      ) {
+        logger.warn("debug command refused", client.auth?.uid, message?.action)
+        return
+      }
+      try {
+        if (executeDebugAction(this, player, message)) {
+          logger.info("debug command", client.auth.uid, message)
+        }
+      } catch (error) {
+        logger.error("debug command error", message, error)
       }
     })
 

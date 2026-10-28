@@ -1,9 +1,9 @@
-import { getBaseAltForm } from "../../config";
+import { getBaseAltForm } from "../../config"
 import { Item } from "../../types"
 import { EffectEnum } from "../../types/enum/Effect"
 import { AttackType } from "../../types/enum/Game"
 import { Pkm } from "../../types/enum/Pokemon"
-import { schemaValues } from "../../utils/schemas";
+import { schemaValues } from "../../utils/schemas"
 import type { Board } from "../board"
 import type { PokemonEntity } from "../pokemon-entity"
 import { AbilityStrategy } from "./ability-strategy"
@@ -27,7 +27,15 @@ export class OrderUpStrategy extends AbilityStrategy {
     )
     pokemonsEating.add(pokemon)
 
-    if (pokemon.items.has(Item.TATSUGIRI_CURLY)) {
+    if (pokemon.items.has(Item.TATSUGIRINITE)) {
+      // Mega Tatsugiri: bonuses of every form
+      pokemonsEating.forEach((p) => {
+        p.addMaxHP(80, p, 0, false)
+        p.addAttack(8, p, 0, false)
+        p.addDefense(8, p, 0, false)
+        p.addSpeed(25, p, 0, false)
+      })
+    } else if (pokemon.items.has(Item.TATSUGIRI_CURLY)) {
       pokemonsEating.forEach((p) => {
         p.addMaxHP(80, p, 0, false)
         p.addAttack(8, p, 0, false)
@@ -44,7 +52,10 @@ export class OrderUpStrategy extends AbilityStrategy {
       })
     } else if (pokemon.player) {
       const tatsugiriOnBoard = schemaValues(pokemon.player.board).find(
-        (e) => e && getBaseAltForm(e.name) === Pkm.TATSUGIRI_CURLY
+        (e) =>
+          e &&
+          (getBaseAltForm(e.name) === Pkm.TATSUGIRI_CURLY ||
+            e.name === Pkm.MEGA_TATSUGIRI)
       )
       if (!tatsugiriOnBoard) {
         const form = [

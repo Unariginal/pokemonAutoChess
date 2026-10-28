@@ -95,6 +95,7 @@ import {
   setErrorAlertMessage
 } from "../stores/NetworkStore"
 import GameChoice from "./component/game/game-choice"
+import GameDebugPanel from "./component/game/game-debug-panel"
 import GameDpsMeter from "./component/game/game-dps-meter"
 import GameExpeditions from "./component/game/game-expeditions"
 import GameFinalRank from "./component/game/game-final-rank"
@@ -1149,6 +1150,7 @@ export default function Game() {
           <GameChoice />
           <GameDpsMeter />
           <GameToasts />
+          {!spectate && <GameDebugPanel />}
           {currentGameEvent === GameEvent.EXPEDITIONS && !spectate && (
             <GameExpeditions />
           )}
