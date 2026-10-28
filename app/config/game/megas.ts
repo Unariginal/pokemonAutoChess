@@ -35,7 +35,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.CHARIZARD,
     stone: Item.CHARIZARDITE_X,
     addTypes: [Synergy.DRAGON],
-    placeholderSpriteSource: "0006"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_CHARIZARD_Y,
@@ -59,7 +59,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.ALAKAZAM,
     stone: Item.ALAKAZITE,
     addTypes: [],
-    placeholderSpriteSource: "0065"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_GENGAR,
@@ -67,7 +67,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.GENGAR,
     stone: Item.GENGARITE,
     addTypes: [],
-    placeholderSpriteSource: "0094"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_KANGASKHAN,
@@ -75,7 +75,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.KANGASKHAN,
     stone: Item.KANGASKHANITE,
     addTypes: [],
-    placeholderSpriteSource: "0115"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_PINSIR,
@@ -99,7 +99,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.AERODACTYL,
     stone: Item.AERODACTYLITE,
     addTypes: [],
-    placeholderSpriteSource: "0142"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_MEWTWO_X,
@@ -115,7 +115,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.MEWTWO,
     stone: Item.MEWTWONITE_Y,
     addTypes: [],
-    placeholderSpriteSource: "0150"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_AMPHAROS,
@@ -155,7 +155,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.TYRANITAR,
     stone: Item.TYRANITARITE,
     addTypes: [],
-    placeholderSpriteSource: "0248"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_BLAZIKEN,
@@ -171,7 +171,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.GARDEVOIR,
     stone: Item.GARDEVOIRITE,
     addTypes: [],
-    placeholderSpriteSource: "0282"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_MAWILE,
@@ -179,7 +179,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.MAWILE,
     stone: Item.MAWILITE,
     addTypes: [],
-    placeholderSpriteSource: "0303"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_AGGRON,
@@ -195,7 +195,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.MEDICHAM,
     stone: Item.MEDICHAMITE,
     addTypes: [],
-    placeholderSpriteSource: "0308"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_MANECTRIC,
@@ -219,7 +219,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.ABSOL,
     stone: Item.ABSOLITE,
     addTypes: [],
-    placeholderSpriteSource: "0359"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_GARCHOMP,
@@ -235,7 +235,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.LUCARIO,
     stone: Item.LUCARIONITE,
     addTypes: [],
-    placeholderSpriteSource: "0448"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_ABOMASNOW,
@@ -267,7 +267,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.SLOWBRO,
     stone: Item.SLOWBRONITE,
     addTypes: [],
-    placeholderSpriteSource: "0080"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_STEELIX,
@@ -307,7 +307,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.SHARPEDO,
     stone: Item.SHARPEDONITE,
     addTypes: [],
-    placeholderSpriteSource: "0319"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_CAMERUPT,
@@ -323,7 +323,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.ALTARIA,
     stone: Item.ALTARIANITE,
     addTypes: [Synergy.FAIRY],
-    placeholderSpriteSource: "0334"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_GLALIE,
@@ -331,7 +331,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.GLALIE,
     stone: Item.GLALITITE,
     addTypes: [],
-    placeholderSpriteSource: "0362"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_SALAMENCE,
@@ -355,7 +355,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.LATIAS,
     stone: Item.LATIASITE,
     addTypes: [],
-    placeholderSpriteSource: "0380"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_LATIOS,
@@ -363,7 +363,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.LATIOS,
     stone: Item.LATIOSITE,
     addTypes: [],
-    placeholderSpriteSource: "0381"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_RAYQUAZA,
@@ -387,7 +387,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.GALLADE,
     stone: Item.GALLADITE,
     addTypes: [],
-    placeholderSpriteSource: "0475"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_AUDINO,
@@ -403,7 +403,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.DIANCIE,
     stone: Item.DIANCITE,
     addTypes: [],
-    placeholderSpriteSource: "0719"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_CLEFABLE,
@@ -459,7 +459,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.SKARMORY,
     stone: Item.SKARMORITE,
     addTypes: [],
-    placeholderSpriteSource: "0227"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_FROSLASS,
@@ -483,7 +483,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.EXCADRILL,
     stone: Item.EXCADRITE,
     addTypes: [],
-    placeholderSpriteSource: "0530"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_SCOLIPEDE,
@@ -499,7 +499,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.SCRAFTY,
     stone: Item.SCRAFTINITE,
     addTypes: [],
-    placeholderSpriteSource: "0560"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_EELEKTROSS,
@@ -507,7 +507,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.EELEKTROSS,
     stone: Item.EELEKTROSSITE,
     addTypes: [],
-    placeholderSpriteSource: "0604"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_CHANDELURE,
@@ -561,7 +561,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.FLOETTE,
     stone: Item.FLOETTITE,
     addTypes: [],
-    placeholderSpriteSource: "0670"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_MALAMAR,
@@ -585,7 +585,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.DRAGALGE,
     stone: Item.DRAGALGITE,
     addTypes: [],
-    placeholderSpriteSource: "0691"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_HAWLUCHA,
@@ -593,7 +593,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.HAWLUCHA,
     stone: Item.HAWLUCHANITE,
     addTypes: [],
-    placeholderSpriteSource: "0701"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_ZYGARDE,
@@ -601,7 +601,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.ZYGARDE_100,
     stone: Item.ZYGARDITE,
     addTypes: [],
-    placeholderSpriteSource: "0718-0002"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_DRAMPA,
@@ -609,7 +609,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.DRAMPA,
     stone: Item.DRAMPANITE,
     addTypes: [],
-    placeholderSpriteSource: "0780"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_FALINKS,
@@ -689,7 +689,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.DARKRAI,
     stone: Item.DARKRANITE,
     addTypes: [],
-    placeholderSpriteSource: "0491"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_GOLURK,
@@ -737,7 +737,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.ZERAORA,
     stone: Item.ZERAORITE,
     addTypes: [],
-    placeholderSpriteSource: "0807"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_SCOVILLAIN,
@@ -761,7 +761,7 @@ export const MegaEvolutions: MegaEvolution[] = [
     template: Pkm.TATSUGIRI_CURLY,
     stone: Item.TATSUGIRINITE,
     addTypes: [],
-    placeholderSpriteSource: "0978"
+    placeholderSpriteSource: null
   },
   {
     mega: Pkm.MEGA_GLIMMORA,

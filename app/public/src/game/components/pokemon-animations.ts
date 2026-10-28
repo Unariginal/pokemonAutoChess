@@ -8169,7 +8169,93 @@ const BasePokemonAnimations: {
   }
 }
 
-// megas use the same animations as their template form
+// imported mega sprites lacking some animations of their template (see edit/import-mega-sprites.ts)
+const MegaAnimationOverrides: { [key in MegaPkm]?: PokemonAnimationConfig } = {
+  [Pkm.MEGA_CHARIZARD_X]: {
+    attack: AnimationType.Attack,
+    eat: AnimationType.Idle
+  },
+  [Pkm.MEGA_ALAKAZAM]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_GENGAR]: { ability: AnimationType.Shoot, eat: AnimationType.Idle },
+  [Pkm.MEGA_KANGASKHAN]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_AERODACTYL]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_MEWTWO_Y]: {
+    ability: AnimationType.Shoot,
+    eat: AnimationType.Idle
+  },
+  [Pkm.MEGA_TYRANITAR]: { eat: AnimationType.Idle, shinyUnavailable: true },
+  [Pkm.MEGA_GARDEVOIR]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_MEDICHAM]: { eat: AnimationType.Idle, shinyUnavailable: true },
+  [Pkm.MEGA_ABSOL]: {
+    attack: AnimationType.Attack,
+    ability: AnimationType.Charge,
+    emote: AnimationType.Charge,
+    eat: AnimationType.Idle
+  },
+  [Pkm.MEGA_LUCARIO]: { emote: AnimationType.Charge, eat: AnimationType.Idle },
+  [Pkm.MEGA_SLOWBRO]: {
+    emote: AnimationType.Shoot,
+    hurt: AnimationType.Idle,
+    sleep: AnimationType.Idle,
+    eat: AnimationType.Idle
+  },
+  [Pkm.MEGA_SHARPEDO]: {
+    attack: AnimationType.Attack,
+    ability: AnimationType.Attack,
+    emote: AnimationType.Idle,
+    hop: AnimationType.Walk,
+    hurt: AnimationType.Idle,
+    sleep: AnimationType.Idle,
+    eat: AnimationType.Idle
+  },
+  [Pkm.MEGA_ALTARIA]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_GLALIE]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_LATIAS]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_LATIOS]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_GALLADE]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_DIANCIE]: {
+    ability: AnimationType.Shoot,
+    emote: AnimationType.Shoot,
+    eat: AnimationType.Idle
+  },
+  [Pkm.MEGA_SKARMORY]: { eat: AnimationType.Idle, shinyUnavailable: true },
+  [Pkm.MEGA_EXCADRILL]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_SCRAFTY]: {
+    attack: AnimationType.Attack,
+    ability: AnimationType.Attack,
+    emote: AnimationType.Idle,
+    hop: AnimationType.Walk,
+    hurt: AnimationType.Idle,
+    eat: AnimationType.Idle
+  },
+  [Pkm.MEGA_EELEKTROSS]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_FLOETTE]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_DRAGALGE]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_HAWLUCHA]: {
+    attack: AnimationType.Swing,
+    ability: AnimationType.Idle,
+    emote: AnimationType.Idle,
+    hop: AnimationType.Walk,
+    hurt: AnimationType.Idle,
+    sleep: AnimationType.Idle,
+    eat: AnimationType.Idle
+  },
+  [Pkm.MEGA_ZYGARDE]: {
+    ability: AnimationType.SpAttack,
+    emote: AnimationType.Shoot,
+    eat: AnimationType.Idle
+  },
+  [Pkm.MEGA_DRAMPA]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_DARKRAI]: {
+    emote: AnimationType.Shoot,
+    eat: AnimationType.Idle,
+    shinyUnavailable: true
+  },
+  [Pkm.MEGA_ZERAORA]: { eat: AnimationType.Idle },
+  [Pkm.MEGA_TATSUGIRI]: { eat: AnimationType.Idle }
+}
+
+// megas use the same animations as their template form, unless their own sprite lacks some
 export const PokemonAnimations: {
   [key in Pkm]: PokemonAnimationConfig
 } = {
@@ -8177,7 +8263,10 @@ export const PokemonAnimations: {
   ...(Object.fromEntries(
     MegaEvolutions.filter((m) => isIn(MegaPkms, m.mega)).map((m) => [
       m.mega,
-      BasePokemonAnimations[m.template as Exclude<Pkm, MegaPkm>]
+      {
+        ...BasePokemonAnimations[m.template as Exclude<Pkm, MegaPkm>],
+        ...MegaAnimationOverrides[m.mega as MegaPkm]
+      }
     ])
   ) as Record<MegaPkm, PokemonAnimationConfig>)
 }

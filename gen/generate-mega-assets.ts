@@ -142,6 +142,8 @@ async function generatePokemonArt(
     [shinyPortraitDir(source), shinyPortraitDir(target)]
   ]) {
     if (!fs.existsSync(fromDir)) continue
+    // real portraits imported from SpriteCollab come with their credits, never overwrite them
+    if (fs.existsSync(`${toDir}/credits.txt`)) continue
     for (const file of fs.readdirSync(fromDir)) {
       if (!file.endsWith(".png")) continue
       const to = `${toDir}/${file}`
@@ -177,9 +179,8 @@ const TagHue: Record<string, number> = {
 }
 
 async function main() {
-  // Litleo and Pyroar have no art at all: use Shinx and Luxray with a fire coloration
+  // Pyroar has no sprite in SpriteCollab: use Luxray with a fire coloration (Litleo has its own art)
   const fireLion = hueShift(180, 1.1)
-  await generatePokemonArt(PkmIndex[Pkm.SHINX], PkmIndex[Pkm.LITLEO], fireLion)
   await generatePokemonArt(PkmIndex[Pkm.LUXRAY], PkmIndex[Pkm.PYROAR], fireLion)
 
   for (const mega of MegaEvolutions) {
