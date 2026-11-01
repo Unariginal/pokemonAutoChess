@@ -218,6 +218,7 @@ export default function Game() {
   const initialized = useRef<boolean>(false)
   const connecting = useRef<boolean>(false)
   const connected = useRef<boolean>(false)
+  const [, setJoinedRoomId] = useState<string>()
   const [loaded, setLoaded] = useState<boolean>(false)
   const [connectError, setConnectError] = useState<string>("")
   const [finalRank, setFinalRank] = useState<number>(0)
@@ -256,6 +257,8 @@ export default function Game() {
             connected.current = true
             connecting.current = false
             dispatch(setConnectionStatus(ConnectionStatus.CONNECTED))
+            // rooms.game is not React state and the status may already be CONNECTED: render again to initialize the game
+            setJoinedRoomId(room.roomId)
           })
           .catch((error) => {
             if (attempts < MAX_ATTEMPS_RECONNECT) {
