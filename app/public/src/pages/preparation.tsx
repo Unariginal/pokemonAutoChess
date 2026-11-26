@@ -18,6 +18,7 @@ import {
   authenticateUser,
   client,
   joinPreparation,
+  leaveRoomSafely,
   rooms,
   toggleReady
 } from "../network"
@@ -62,6 +63,7 @@ export default function Preparation() {
   const user = useAppSelector((state) => state.preparation.user)
   const initialized = useRef<boolean>(false)
   const connectingToGame = useRef<boolean>(false)
+  const leavingRoom = useRef<boolean>(false)
 
   useEffect(() => {
     const reconnect = async () => {
@@ -226,6 +228,7 @@ export default function Preparation() {
       })
 
       room.onDrop((code) => {
+        if (leavingRoom.current || connectingToGame.current) return // closing on purpose
         const shouldReconnect =
           code === CloseCodes.ABNORMAL_CLOSURE || code === CloseCodes.TIMEOUT
         if (shouldReconnect) {
@@ -268,7 +271,7 @@ export default function Preparation() {
           }
           navigate("/lobby")
           playSound(SOUNDS.LEAVE_ROOM)
-        } else {
+        } else if (!leavingRoom.current && !connectingToGame.current) {
           dispatch(setConnectionStatus(ConnectionStatus.CONNECTION_FAILED))
         }
       })
@@ -287,8 +290,8 @@ export default function Preparation() {
             MAX_LOADING_TIME / 1000
           ) // 3 minutes allowed to start game
           await Promise.allSettled([
-            room.connection.isOpen && room.leave(),
-            game.connection.isOpen && game.leave(false)
+            leaveRoomSafely(room),
+            leaveRoomSafely(game, false)
           ])
           dispatch(resetPreparation())
           navigate("/game")
@@ -302,8 +305,9 @@ export default function Preparation() {
   }, [initialized])
 
   const leavePreparationRoom = useCallback(async () => {
-    if (room?.connection.isOpen) {
-      await room.leave(true)
+    if (room) {
+      leavingRoom.current = true
+      await leaveRoomSafely(room)
     }
     localStore.delete(LocalStoreKeys.RECONNECTION_PREPARATION)
     dispatch(resetPreparation())

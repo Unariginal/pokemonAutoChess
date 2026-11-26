@@ -19,6 +19,7 @@ import {
 } from "../config"
 import { type AtlasNodeId, STAGE_ATLAS_UNLOCKED } from "../config/game/atlas"
 import { GADGETS } from "../config/game/gadgets"
+import { canUseDebugTools, executeDebugAction } from "../core/debug-tools"
 import { unequipItems } from "../core/effects/items"
 import { computeElo } from "../core/elo"
 import { updatePlayerExpeditionsAfterGame } from "../core/events/expeditions"
@@ -76,6 +77,7 @@ import {
 } from "../types"
 import { EvolutionType } from "../types/EvolutionRules"
 import { CloseCodes } from "../types/enum/CloseCodes"
+import type { DebugMessage } from "../types/enum/DebugAction"
 import type { EloRank } from "../types/enum/EloRank"
 import { GameMode, PokemonActionState, Rarity } from "../types/enum/Game"
 import {
@@ -726,6 +728,41 @@ export default class GameRoom extends Room<{ state: GameState }> {
         } catch (error) {
           logger.error("dev command error", message)
         }
+      }
+    })
+
+    this.onMessage(Transfer.DEBUG_TOOLS_ACCESS, (client) => {
+      const player = client.auth && this.state.players.get(client.auth.uid)
+      client.send(
+        Transfer.DEBUG_TOOLS_ACCESS,
+        !!player &&
+          canUseDebugTools({
+            uid: client.auth.uid,
+            email: client.auth.email,
+            role: player.role
+          })
+      )
+    })
+
+    this.onMessage(Transfer.DEBUG_COMMAND, (client, message: DebugMessage) => {
+      const player = client.auth && this.state.players.get(client.auth.uid)
+      if (
+        !player ||
+        !canUseDebugTools({
+          uid: client.auth.uid,
+          email: client.auth.email,
+          role: player.role
+        })
+      ) {
+        logger.warn("debug command refused", client.auth?.uid, message?.action)
+        return
+      }
+      try {
+        if (executeDebugAction(this, player, message)) {
+          logger.info("debug command", client.auth.uid, message)
+        }
+      } catch (error) {
+        logger.error("debug command error", message, error)
       }
     })
 

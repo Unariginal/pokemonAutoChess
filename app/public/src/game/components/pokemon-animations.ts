@@ -2968,6 +2968,7 @@ export const PokemonAnimations: {
     attack: AnimationType.Shoot,
     ability: AnimationType.Attack,
     emote: AnimationType.Shoot,
+    shinyUnavailable: true,
     attackSprite: AttackSprite.FIRE_RANGE,
     hitSprite: HitSprite.FIRE_HIT
   },

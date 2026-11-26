@@ -25,12 +25,14 @@ import UserMetadata, {
 import { notificationsService } from "../services/notifications"
 import { type Emotion, Role, type Title, Transfer } from "../types"
 import { CloseCodes } from "../types/enum/CloseCodes"
+import type { UserStatChanges } from "../types/enum/DebugAction"
 import type { GameMode } from "../types/enum/Game"
 import type { Language } from "../types/enum/Language"
 import { MaintenanceOrder } from "../types/enum/MaintenanceOrder"
 import type { ITournament } from "../types/interfaces/Tournament"
 import type { IUserMetadataMongo } from "../types/interfaces/UserMetadata"
 import { logger } from "../utils/logger"
+import { canClientUseDebugTools, setUserStats } from "./commands/admin-commands"
 import {
   BanUserCommand,
   ChangeAvatarCommand,
@@ -78,7 +80,13 @@ export default class CustomLobbyRoom extends Room {
   messages = {
     "search-by-id": async (client: Client, uid: string) => {
       return await UserMetadata.findOne({ uid })
-    }
+    },
+    "debug-tools-access": (client: Client) =>
+      canClientUseDebugTools(this, client),
+    "set-user-stats": (
+      client: Client,
+      message: { uid: string; stats: UserStatChanges }
+    ) => setUserStats(this, client, message)
   }
 
   removeRoom(index: number, roomId: string) {

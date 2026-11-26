@@ -52,7 +52,13 @@ import {
   useAppSelector
 } from "../hooks"
 
-import { authenticateUser, client, joinGame, rooms } from "../network"
+import {
+  authenticateUser,
+  client,
+  joinGame,
+  leaveRoomSafely,
+  rooms
+} from "../network"
 import { usePreference } from "../preferences"
 import store from "../stores"
 import {
@@ -93,6 +99,7 @@ import {
 } from "../stores/NetworkStore"
 import GameAtlas from "./component/game/game-atlas"
 import GameChoice from "./component/game/game-choice"
+import GameDebugPanel from "./component/game/game-debug-panel"
 import GameDpsMeter from "./component/game/game-dps-meter"
 import GameExpeditions from "./component/game/game-expeditions"
 import GameFinalRank from "./component/game/game-final-rank"
@@ -217,6 +224,7 @@ export default function Game() {
   const initialized = useRef<boolean>(false)
   const connecting = useRef<boolean>(false)
   const connected = useRef<boolean>(false)
+  const [, setJoinedRoomId] = useState<string>()
   const [loaded, setLoaded] = useState<boolean>(false)
   const [connectError, setConnectError] = useState<string>("")
   const [showSurrenderConfirm, setShowSurrenderConfirm] = useState(false)
@@ -257,6 +265,8 @@ export default function Game() {
             connected.current = true
             connecting.current = false
             dispatch(setConnectionStatus(ConnectionStatus.CONNECTED))
+            // rooms.game is not React state and the status may already be CONNECTED: render again to initialize the game
+            setJoinedRoomId(room.roomId)
           })
           .catch((error) => {
             if (attempts < MAX_ATTEMPS_RECONNECT) {
@@ -369,9 +379,7 @@ export default function Game() {
         { reconnectionToken: r.reconnectionToken, roomId: r.roomId },
         30
       )
-      if (r.connection.isOpen) {
-        await r.leave(false)
-      }
+      await leaveRoomSafely(r, false)
       dispatch(leaveGame())
       navigate("/after")
       if (rooms.game?.connection.isOpen) {
@@ -1253,6 +1261,7 @@ export default function Game() {
           <GameDpsMeter />
           <GameAtlas />
           <GameToasts />
+          {!spectate && <GameDebugPanel />}
           {currentGameEvent === GameEvent.EXPEDITIONS && !spectate && (
             <GameExpeditions />
           )}

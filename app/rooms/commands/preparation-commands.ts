@@ -300,15 +300,6 @@ export class OnGameStartRequestCommand extends Command<
         return
       }
 
-      if (this.state.users.size < 2) {
-        this.state.addMessage({
-          authorId: "Server",
-          payload: `Add bots or wait for more players to join your room.`,
-          avatar: "0079/Sigh"
-        })
-        return
-      }
-
       if (
         !allUsersReady &&
         (this.state.gameMode === GameMode.CUSTOM_LOBBY ||
@@ -317,6 +308,15 @@ export class OnGameStartRequestCommand extends Command<
         this.state.addMessage({
           authorId: "Server",
           payload: `Not all players are ready.`,
+          avatar: "0079/Sigh"
+        })
+        return
+      }
+
+      if (this.state.users.size < 2) {
+        this.state.addMessage({
+          authorId: "Server",
+          payload: `Add bots or wait for more players to join your room.`,
           avatar: "0079/Sigh"
         })
         return
@@ -768,29 +768,34 @@ export class OnToggleReadyCommand extends Command<
         user.ready = ready
       }
 
-      const nbExpectedPlayers =
-        this.room.metadata?.whitelist &&
-        this.room.metadata?.whitelist.length > 0
-          ? max(MAX_PLAYERS_PER_GAME)(this.room.metadata?.whitelist.length)
-          : MAX_PLAYERS_PER_GAME
-
-      if (
-        this.state.gameMode !== GameMode.CUSTOM_LOBBY &&
-        this.state.users.size === nbExpectedPlayers &&
-        schemaValues(this.state.users).every((user) => user.ready)
-      ) {
-        // auto start when ranked lobby is full and all ready
-        this.room.state.addMessage({
-          authorId: "server",
-          payload: "Lobby is full, starting match in 5 seconds..."
-        })
-
+      if (shouldAutoStart(this.room)) {
         return new CheckAutoStartRoom()
       }
     } catch (error) {
       logger.error(error)
     }
   }
+}
+
+// auto start when a lobby without manual start is full and all ready
+function shouldAutoStart(room: PreparationRoom): boolean {
+  const nbExpectedPlayers =
+    room.metadata?.whitelist && room.metadata?.whitelist.length > 0
+      ? max(MAX_PLAYERS_PER_GAME)(room.metadata?.whitelist.length)
+      : MAX_PLAYERS_PER_GAME
+
+  if (
+    room.state.gameMode !== GameMode.CUSTOM_LOBBY &&
+    room.state.users.size === nbExpectedPlayers &&
+    schemaValues(room.state.users).every((user) => user.ready)
+  ) {
+    room.state.addMessage({
+      authorId: "server",
+      payload: "Lobby is full, starting match in 5 seconds..."
+    })
+    return true
+  }
+  return false
 }
 
 export class CheckAutoStartRoom extends Command<PreparationRoom, void> {
@@ -885,6 +890,7 @@ type OnAddBotPayload = {
 export class OnAddBotCommand extends Command<PreparationRoom, OnAddBotPayload> {
   async execute(data: OnAddBotPayload) {
     try {
+      if (this.state.gameMode === GameMode.TOURNAMENT) return
       if (this.state.users.size >= MAX_PLAYERS_PER_GAME) {
         this.room.state.addMessage({
           authorId: "server",
@@ -957,6 +963,10 @@ export class OnAddBotCommand extends Command<PreparationRoom, OnAddBotPayload> {
           authorId: "server",
           payload: `Bot ${bot.name} added.`
         })
+
+        if (shouldAutoStart(this.room)) {
+          return new CheckAutoStartRoom()
+        }
       }
     } catch (error) {
       logger.error(error)
@@ -983,6 +993,7 @@ export class OnRemoveBotCommand extends Command<
         }
       }
       if (name && this.state.users.delete(target)) {
+        this.state.abortOnPlayerLeave?.abort() // the lobby is no longer full
         this.room.state.addMessage({
           authorId: "server",
           payload: `Bot ${name} removed.`

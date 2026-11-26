@@ -9,6 +9,7 @@ import type PreparationState from "../../rooms/states/preparation-state"
 import { type Emotion, type Role, type Title, Transfer } from "../../types"
 import type { Booster } from "../../types/Booster"
 import { CloseCodes } from "../../types/enum/CloseCodes"
+import type { UserStatChanges } from "../../types/enum/DebugAction"
 import type { EloRank } from "../../types/enum/EloRank"
 import type { BotDifficulty } from "../../types/enum/Game"
 import type { MaintenanceOrder } from "../../types/enum/MaintenanceOrder"
@@ -109,13 +110,29 @@ export const rooms: {
   after: undefined
 }
 
+const LEAVE_ROOM_TIMEOUT_IN_MS = 3000
+
+// Leaving on purpose must not turn into an automatic reconnection: when a proxy drops the
+// close code, the SDK sees an abnormal closure and retries for a minute before leave() resolves
+export async function leaveRoomSafely(
+  room: Room<any, any>,
+  consented = true
+): Promise<number> {
+  room.reconnection.enabled = false
+  if (!room.connection.isOpen) return -1
+  return await Promise.race([
+    room.leave(consented),
+    new Promise<number>((resolve) =>
+      setTimeout(() => resolve(-1), LEAVE_ROOM_TIMEOUT_IN_MS)
+    )
+  ])
+}
+
 export async function leaveRoom(roomName: keyof typeof rooms): Promise<number> {
   const room = rooms[roomName]
   if (room) {
     rooms[roomName] = undefined
-    if (room.connection.isOpen) {
-      return await room.leave()
-    }
+    return await leaveRoomSafely(room)
   }
   return Promise.resolve(-1)
 }
@@ -362,6 +379,16 @@ export function showEmote(emote?: string) {
 export async function searchById(uid: string) {
   const user = await rooms.lobby?.request("search-by-id", uid)
   if (user) store.dispatch(setSearchedUser(user))
+}
+
+export async function canUseDebugTools(): Promise<boolean> {
+  return (await rooms.lobby?.request("debug-tools-access")) === true
+}
+
+export async function setUserStats(uid: string, stats: UserStatChanges) {
+  const result = await rooms.lobby?.request("set-user-stats", { uid, stats })
+  if (result?.user) store.dispatch(setSearchedUser(result.user))
+  return result as { user?: unknown; error?: string } | undefined
 }
 
 export function deleteTournament(params: { id: string }) {
